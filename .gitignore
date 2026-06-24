@@ -1,0 +1,41 @@
+# =========================
+# 1. ARCHIVOS DE IDEs
+# =========================
+# IntelliJ IDEA (Backend)
+.idea/
+*.iml
+*.iws
+
+# Visual Studio Code (Frontend)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# =========================
+# 2. SPRING BOOT / JAVA (Backend)
+# =========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# 3. ANGULAR / NODE (Frontend)
+# =========================
+node_modules/
+dist/
+/out-tsc/
+/.angular/
+npm-debug.log
+yarn-error.log
+
+# =========================
+# 4. SISTEMA OPERATIVO
+# =========================
+.DS_Store
+Thumbs.db
