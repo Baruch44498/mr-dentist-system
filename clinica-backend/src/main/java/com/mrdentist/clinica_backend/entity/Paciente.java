@@ -35,6 +35,9 @@ public class Paciente
     @PrePersist
     public void prePersist() {
         this.fechaRegistro = LocalDate.now(); // Asigna la fecha actual automáticamente
+        if (this.estado == null) {
+            this.estado = true;
+        }
     }
 
     public Paciente(Long idPaciente, String nombres, String apellidos, String dni, String telefono, String correo, LocalDate fechaRegistro, Boolean estado) {

@@ -1,13 +1,18 @@
 package com.mrdentist.clinica_backend.service;
+
 import com.mrdentist.clinica_backend.entity.Cita;
 import com.mrdentist.clinica_backend.repository.CitaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+
 @Service
 public class CitaService {
     @Autowired
     private CitaRepository citaRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public List<Cita> listarActivas() {
         return citaRepository.findByEstadoTrue();
@@ -35,5 +40,16 @@ public class CitaService {
         });
     }
 
-
+    public Cita cancelarCita(Long id, String motivo) {
+        return citaRepository.findById(id).map(cita -> {
+            cita.setEstadoCita("CANCELADA");
+            Cita citaCancelada = citaRepository.save(cita);
+            try {
+                emailService.enviarCorreoCancelacion(citaCancelada, motivo);
+            } catch (Exception e) {
+                System.out.println("[CitaService] Error no crítico al enviar correo: " + e.getMessage());
+            }
+            return citaCancelada;
+        }).orElse(null);
+    }
 }

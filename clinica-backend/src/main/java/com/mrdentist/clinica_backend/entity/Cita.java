@@ -32,6 +32,16 @@ public class Cita
     @Column(nullable = false)
     private Boolean estado = true;
 
+    @PrePersist
+    public void prePersist() {
+        if (this.estadoCita == null) {
+            this.estadoCita = "PENDIENTE";
+        }
+        if (this.estado == null) {
+            this.estado = true;
+        }
+    }
+
     public Cita(Long idCita, Paciente paciente, Medico medico, LocalDateTime fechaHora, String motivo, String estadoCita, Boolean estado) {
         this.idCita = idCita;
         this.paciente = paciente;
