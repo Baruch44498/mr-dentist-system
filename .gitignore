@@ -6,12 +6,8 @@
 *.iml
 *.iws
 
-# Visual Studio Code (Frontend)
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# Visual Studio Code (Frontend y Raíz)
+.vscode/
 
 # =========================
 # 2. SPRING BOOT / JAVA (Backend)
