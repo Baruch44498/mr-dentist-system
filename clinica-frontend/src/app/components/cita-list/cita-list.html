@@ -1,0 +1,261 @@
+<div class="page-wrapper">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Gestión de Citas</h1>
+      <p>Programe y administre las citas de los pacientes</p>
+    </div>
+    <button (click)="abrirBookingModal()" class="mrd-btn mrd-btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16l3 3-3 3"/></svg>
+      Agendar Cita
+    </button>
+  </div>
+
+  <!-- Search Filter Card -->
+  <div class="mrd-card filter-card">
+    <div class="search-box">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input 
+        type="text" 
+        [value]="filterTerm()" 
+        (input)="onFilterChange($event)" 
+        placeholder="Filtrar citas por paciente, médico, especialidad o estado..." 
+        class="form-input search-input"
+      />
+    </div>
+  </div>
+
+  <!-- Content / Table -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando programación de citas...</p>
+    </div>
+  } @else {
+    @if (filteredCitas().length === 0) {
+      <div class="empty-state mrd-card">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><circle cx="12" cy="16" r="1"/></svg>
+        <h3>No se encontraron citas agendadas</h3>
+        <p>Programe una nueva cita para comenzar.</p>
+      </div>
+    } @else {
+      <div class="mrd-table-container">
+        <table class="mrd-table">
+          <thead>
+            <tr>
+              <th>Fecha y Hora</th>
+              <th>Paciente</th>
+              <th>Especialidad</th>
+              <th>Médico Tratante</th>
+              <th>Motivo de Consulta</th>
+              <th>Estado Cita</th>
+              <th style="text-align: center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cita of filteredCitas(); track cita.idCita) {
+              <tr>
+                <td class="date-cell">{{ cita.fechaHora | date:'dd/MM/yyyy - HH:mm' }}</td>
+                <td class="name-cell">{{ cita.paciente.nombres }} {{ cita.paciente.apellidos }}</td>
+                <td>
+                  <span class="badge badge-info">{{ cita.medico.especialidad }}</span>
+                </td>
+                <td class="medico-cell">Dr(a). {{ cita.medico.nombres }} {{ cita.medico.apellidos }}</td>
+                <td class="motivo-cell">{{ cita.motivo || 'Consulta General' }}</td>
+                <td>
+                  @if (cita.estadoCita === 'PENDIENTE') {
+                    <span class="badge badge-warning">Pendiente</span>
+                  } @else if (cita.estadoCita === 'REALIZADA') {
+                    <span class="badge badge-success">Realizada</span>
+                  } @else {
+                    <span class="badge badge-danger">Cancelada</span>
+                  }
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    @if (cita.estadoCita === 'PENDIENTE') {
+                      <button (click)="abrirCancelarModal(cita)" class="mrd-btn mrd-btn-outline cancel-action-btn" title="Cancelar Cita">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                        Cancelar
+                      </button>
+                    } @else {
+                      <span class="text-disabled">-</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- Booking Modal -->
+  @if (isBookingModalOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal-dialog booking-dialog">
+        <div class="modal-header">
+          <h2>Agendar Nueva Cita</h2>
+          <button (click)="cerrarBookingModal()" class="btn-close-modal">&times;</button>
+        </div>
+        <form [formGroup]="citaForm" (ngSubmit)="guardarCita()">
+          <div class="modal-body">
+            @if (errorMessage()) {
+              <div class="alert-error">
+                {{ errorMessage() }}
+              </div>
+            }
+
+            <!-- Paciente Dropdown -->
+            <div class="form-group">
+              <label class="form-label">Paciente *</label>
+              <select formControlName="idPaciente" class="form-input">
+                <option value="" disabled>Seleccione un paciente</option>
+                @for (p of pacientes(); track p.idPaciente) {
+                  <option [value]="p.idPaciente">{{ p.nombres }} {{ p.apellidos }} (DNI: {{ p.dni }})</option>
+                }
+              </select>
+              @if (citaForm.get('idPaciente')?.touched && citaForm.get('idPaciente')?.invalid) {
+                <span class="field-error">Debe seleccionar un paciente.</span>
+              }
+            </div>
+
+            <div class="form-row">
+              <!-- Especialidad Dropdown -->
+              <div class="form-group col">
+                <label class="form-label">Especialidad Requerida *</label>
+                <select formControlName="especialidad" class="form-input">
+                  <option value="" disabled>Seleccione especialidad</option>
+                  @for (esp of especialidades; track esp) {
+                    <option [value]="esp">{{ esp }}</option>
+                  }
+                </select>
+                @if (citaForm.get('especialidad')?.touched && citaForm.get('especialidad')?.invalid) {
+                  <span class="field-error">Debe seleccionar la especialidad.</span>
+                }
+              </div>
+
+              <!-- Medico Dropdown (Filtered by specialty) -->
+              <div class="form-group col">
+                <label class="form-label">Médico Especialista *</label>
+                <select formControlName="idMedico" class="form-input">
+                  <option value="" disabled>Seleccione médico</option>
+                  @for (m of medicos(); track m.idMedico) {
+                    <option [value]="m.idMedico">Dr(a). {{ m.nombres }} {{ m.apellidos }}</option>
+                  }
+                </select>
+                @if (citaForm.get('idMedico')?.touched && citaForm.get('idMedico')?.invalid) {
+                  <span class="field-error">Debe seleccionar un médico.</span>
+                }
+              </div>
+            </div>
+
+            <!-- Date picker -->
+            <div class="form-group">
+              <label class="form-label">Fecha de la Cita *</label>
+              <input type="date" formControlName="fecha" class="form-input" />
+              @if (citaForm.get('fecha')?.touched && citaForm.get('fecha')?.invalid) {
+                <span class="field-error">Debe seleccionar una fecha.</span>
+              }
+            </div>
+
+            <!-- Hourly Slots Picker -->
+            <div class="slots-section">
+              <label class="form-label">Horarios Disponibles * (Intervalos de 1 hora)</label>
+              
+              @if (!citaForm.get('idMedico')?.value || !citaForm.get('fecha')?.value) {
+                <div class="slots-info">
+                  Seleccione un médico y una fecha para ver las horas disponibles de atención.
+                </div>
+              } @else {
+                @if (disponiblesSlots().length === 0) {
+                  <div class="slots-info slots-warning">
+                    ⚠️ No hay horarios disponibles para este médico en la fecha seleccionada. 
+                    Intente con otra fecha o verifique la planificación del médico.
+                  </div>
+                } @else {
+                  <div class="slots-grid">
+                    @for (slot of disponiblesSlots(); track slot) {
+                      <button 
+                        type="button" 
+                        [class.active]="selectedHour() === slot"
+                        (click)="seleccionarHora(slot)"
+                        class="slot-btn"
+                      >
+                        {{ slot }}
+                      </button>
+                    }
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- Motivo -->
+            <div class="form-group" style="margin-top: 1.5rem;">
+              <label class="form-label">Motivo de consulta / Síntomas</label>
+              <textarea formControlName="motivo" class="form-input form-textarea" placeholder="Breve descripción del motivo de la cita..." rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" (click)="cerrarBookingModal()" class="mrd-btn mrd-btn-outline" [disabled]="submitting()">
+              Cancelar
+            </button>
+            <button type="submit" class="mrd-btn mrd-btn-primary" [disabled]="submitting() || !selectedHour()">
+              @if (submitting()) {
+                Agendando...
+              } @else {
+                Confirmar Cita
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Cancellation Reason Modal -->
+  @if (isCancelModalOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal-dialog cancel-dialog">
+        <div class="modal-header">
+          <h2>Motivo de Cancelación</h2>
+          <button (click)="cerrarCancelarModal()" class="btn-close-modal">&times;</button>
+        </div>
+        <form [formGroup]="cancelForm" (ngSubmit)="confirmarCancelacion()">
+          <div class="modal-body">
+            <p class="modal-desc">
+              Indique el motivo por el cual cancela esta cita. 
+              <strong>Se enviará una notificación por correo electrónico de manera inmediata al paciente</strong> con los detalles.
+            </p>
+
+            <div class="form-group">
+              <label class="form-label">Descripción del Motivo *</label>
+              <textarea 
+                formControlName="motivoCancelacion" 
+                class="form-input form-textarea" 
+                placeholder="Ej: Cambio de turno médico o descanso médico..." 
+                rows="4"
+              ></textarea>
+              @if (cancelForm.get('motivoCancelacion')?.touched && cancelForm.get('motivoCancelacion')?.invalid) {
+                <span class="field-error">Debe escribir un motivo (mínimo 5 caracteres).</span>
+              }
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" (click)="cerrarCancelarModal()" class="mrd-btn mrd-btn-outline" [disabled]="canceling()">
+              Volver
+            </button>
+            <button type="submit" class="mrd-btn mrd-btn-danger" [disabled]="canceling() || cancelForm.invalid">
+              @if (canceling()) {
+                Cancelando y Notificando...
+              } @else {
+                Confirmar Cancelación
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

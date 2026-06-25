@@ -1,1 +1,321 @@
-/* You can add global styles to this file, and also import other style files */
+/* Import modern font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Color Palette - Premium Clinic Theme (Teal, Cyan, Indigo, Slate) */
+  --primary-color: oklch(58% 0.17 195);       /* Teal / Mint clinical blue */
+  --primary-hover: oklch(50% 0.18 195);
+  --primary-light: oklch(93% 0.03 195);
+  --secondary-color: oklch(42% 0.14 245);     /* Trusting indigo/navy */
+  --secondary-hover: oklch(34% 0.14 245);
+  
+  --bg-gradient: linear-gradient(135deg, oklch(98% 0.005 240) 0%, oklch(95% 0.01 220) 100%);
+  --sidebar-bg: oklch(25% 0.04 250);          /* Slate dark sidebar */
+  --sidebar-hover: oklch(30% 0.05 250);
+  
+  /* Status Colors */
+  --success: oklch(62% 0.16 145);             /* Emerald green */
+  --warning: oklch(75% 0.16 75);              /* Warm amber/gold */
+  --danger: oklch(58% 0.18 25);               /* Deep coral/red */
+  --info: oklch(62% 0.16 220);                /* Celestial blue */
+
+  /* Neutral Shades */
+  --text-primary: oklch(25% 0.02 240);
+  --text-secondary: oklch(50% 0.02 240);
+  --text-muted: oklch(70% 0.01 240);
+  --border-color: oklch(90% 0.01 240);
+  --card-bg: oklch(100% 0 0);
+  
+  /* Font Families */
+  --font-title: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+
+  /* Shadows & Glassmorphism */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-blur: blur(12px);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+}
+
+/* Global resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* App Layout Grid */
+.app-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+@media (max-width: 992px) {
+  .app-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Custom premium card component */
+.mrd-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mrd-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Premium Form Styling */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.form-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: all 0.25s ease;
+}
+.form-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+.form-input.ng-invalid.ng-touched {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 15%, transparent);
+}
+
+/* Modern Button styling */
+.mrd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.mrd-btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+.mrd-btn-primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 30%, transparent);
+}
+.mrd-btn-secondary {
+  background: var(--secondary-color);
+  color: white;
+}
+.mrd-btn-secondary:hover {
+  background: var(--secondary-hover);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--secondary-color) 30%, transparent);
+}
+.mrd-btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+.mrd-btn-outline:hover {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.mrd-btn-danger {
+  background: var(--danger);
+  color: white;
+}
+.mrd-btn-danger:hover {
+  background: oklch(50% 0.18 25);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--danger) 30%, transparent);
+}
+.mrd-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+/* Glassmorphic Modal Backdrop & Dialog */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards ease-out;
+}
+.modal-dialog {
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(30px);
+  animation: slideUp 0.3s 0.05s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-body {
+  padding: 1.5rem;
+}
+.modal-footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Tables styling */
+.mrd-table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+.mrd-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.95rem;
+}
+.mrd-table th {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  font-family: var(--font-title);
+  font-weight: 700;
+  padding: 1rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+}
+.mrd-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.mrd-table tr:last-child td {
+  border-bottom: none;
+}
+.mrd-table tr:hover td {
+  background: oklch(99% 0.005 240);
+}
+
+/* Badge classes */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.badge-success {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+}
+.badge-warning {
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning);
+}
+.badge-danger {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+.badge-info {
+  background: color-mix(in srgb, var(--info) 12%, transparent);
+  color: var(--info);
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  to { transform: translateY(0); }
+}

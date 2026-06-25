@@ -32,4 +32,8 @@ public class CitaController
         citaService.eliminarLogico(id);
     }
 
+    @PutMapping("/{id}/cancelar")
+    public Cita cancelarCita(@PathVariable Long id, @RequestParam String motivo) {
+        return citaService.cancelarCita(id, motivo);
+    }
 }

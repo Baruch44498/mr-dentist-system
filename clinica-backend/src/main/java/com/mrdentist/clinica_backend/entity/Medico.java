@@ -37,6 +37,13 @@ public class Medico
     @Column(nullable = false)
     private Boolean estado = true;
 
+    @PrePersist
+    public void prePersist() {
+        if (this.estado == null) {
+            this.estado = true;
+        }
+    }
+
     public Medico(Long idMedico, String nombres, String apellidos, String dni, String cop, String especialidad, String horarioTurno, String telefono, String correo, Boolean estado) {
         this.idMedico = idMedico;
         this.nombres = nombres;
