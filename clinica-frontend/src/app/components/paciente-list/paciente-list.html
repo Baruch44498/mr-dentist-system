@@ -1,0 +1,153 @@
+<div class="page-wrapper">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Gestión de Pacientes</h1>
+      <p>Administre la información de los pacientes de la clínica</p>
+    </div>
+    <button (click)="abrirModalNuevo()" class="mrd-btn mrd-btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      Nuevo Paciente
+    </button>
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="mrd-card filter-card">
+    <div class="search-box">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input 
+        type="text" 
+        [value]="searchTerm()" 
+        (input)="onSearch($event)" 
+        placeholder="Buscar paciente por nombre, apellido, DNI..." 
+        class="form-input search-input"
+      />
+    </div>
+  </div>
+
+  <!-- Content / Table -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando lista de pacientes...</p>
+    </div>
+  } @else {
+    @if (filteredPacientes().length === 0) {
+      <div class="empty-state mrd-card">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+        <h3>No se encontraron pacientes</h3>
+        <p>Intente buscar con otros términos o registre un nuevo paciente.</p>
+      </div>
+    } @else {
+      <div class="mrd-table-container">
+        <table class="mrd-table">
+          <thead>
+            <tr>
+              <th>DNI</th>
+              <th>Nombres y Apellidos</th>
+              <th>Teléfono</th>
+              <th>Correo Electrónico</th>
+              <th>Fecha Registro</th>
+              <th style="text-align: center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (paciente of filteredPacientes(); track paciente.idPaciente) {
+              <tr>
+                <td class="dni-cell">{{ paciente.dni }}</td>
+                <td class="name-cell">{{ paciente.nombres }} {{ paciente.apellidos }}</td>
+                <td>{{ paciente.telefono || '-' }}</td>
+                <td>{{ paciente.correo || '-' }}</td>
+                <td>{{ (paciente.fechaRegistro | date:'dd/MM/yyyy') || '-' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button (click)="abrirModalEditar(paciente)" class="btn-action edit-btn" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    </button>
+                    <button (click)="eliminarPaciente(paciente.idPaciente!)" class="btn-action delete-btn" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- Patient Form Modal -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>{{ selectedPacienteId ? 'Editar Paciente' : 'Nuevo Paciente' }}</h2>
+          <button (click)="cerrarModal()" class="btn-close-modal">&times;</button>
+        </div>
+        <form [formGroup]="patientForm" (ngSubmit)="guardarPaciente()">
+          <div class="modal-body">
+            @if (errorMessage()) {
+              <div class="alert-error">
+                {{ errorMessage() }}
+              </div>
+            }
+
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Nombres *</label>
+                <input type="text" formControlName="nombres" class="form-input" placeholder="Ej: Juan Carlos" />
+                @if (patientForm.get('nombres')?.touched && patientForm.get('nombres')?.invalid) {
+                  <span class="field-error">El nombre es requerido.</span>
+                }
+              </div>
+              
+              <div class="form-group col">
+                <label class="form-label">Apellidos *</label>
+                <input type="text" formControlName="apellidos" class="form-input" placeholder="Ej: Pérez Quispe" />
+                @if (patientForm.get('apellidos')?.touched && patientForm.get('apellidos')?.invalid) {
+                  <span class="field-error">El apellido es requerido.</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">DNI *</label>
+              <input type="text" formControlName="dni" class="form-input" placeholder="Ej: 12345678" maxlength="8" />
+              @if (patientForm.get('dni')?.touched && patientForm.get('dni')?.invalid) {
+                <span class="field-error">Debe ingresar un DNI válido de 8 dígitos.</span>
+              }
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Teléfono</label>
+                <input type="text" formControlName="telefono" class="form-input" placeholder="Ej: 987654321" />
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" formControlName="correo" class="form-input" placeholder="Ej: juan.perez@example.com" />
+                @if (patientForm.get('correo')?.touched && patientForm.get('correo')?.invalid) {
+                  <span class="field-error">Ingrese un correo electrónico válido.</span>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" (click)="cerrarModal()" class="mrd-btn mrd-btn-outline" [disabled]="submitting()">
+              Cancelar
+            </button>
+            <button type="submit" class="mrd-btn mrd-btn-primary" [disabled]="submitting()">
+              @if (submitting()) {
+                Guardando...
+              } @else {
+                Guardar Paciente
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

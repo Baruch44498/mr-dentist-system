@@ -1,0 +1,269 @@
+<div class="page-wrapper">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Gestión de Médicos</h1>
+      <p>Administre los odontólogos y planifique sus horarios de atención</p>
+    </div>
+    <button (click)="abrirModalNuevo()" class="mrd-btn mrd-btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      Nuevo Médico
+    </button>
+  </div>
+
+  <!-- Search Filter -->
+  <div class="mrd-card filter-card">
+    <div class="search-box">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input 
+        type="text" 
+        [value]="searchTerm()" 
+        (input)="onSearch($event)" 
+        placeholder="Buscar médico por nombre, especialidad, COP..." 
+        class="form-input search-input"
+      />
+    </div>
+  </div>
+
+  <!-- Content Table -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando lista de especialistas...</p>
+    </div>
+  } @else {
+    @if (filteredMedicos().length === 0) {
+      <div class="empty-state mrd-card">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m14.5 12.5-3.5-3.5"/><path d="m11 12.5 3.5-3.5"/></svg>
+        <h3>No se encontraron médicos</h3>
+        <p>Intente buscar con otros términos o registre un nuevo médico especialista.</p>
+      </div>
+    } @else {
+      <div class="mrd-table-container">
+        <table class="mrd-table">
+          <thead>
+            <tr>
+              <th>COP (Colegiatura)</th>
+              <th>Médico Especialista</th>
+              <th>Especialidad</th>
+              <th>Horario Turno Base</th>
+              <th>Contacto</th>
+              <th style="text-align: center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (medico of filteredMedicos(); track medico.idMedico) {
+              <tr>
+                <td class="cop-cell">{{ medico.cop }}</td>
+                <td class="name-cell">Dr(a). {{ medico.nombres }} {{ medico.apellidos }}</td>
+                <td>
+                  <span class="badge badge-info">{{ medico.especialidad }}</span>
+                </td>
+                <td class="turno-cell">{{ medico.horarioTurno }}</td>
+                <td>
+                  <div class="contact-info">
+                    <span>📞 {{ medico.telefono || '-' }}</span>
+                    <span class="email-text">✉️ {{ medico.correo || '-' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <button (click)="abrirPlanificacion(medico)" class="btn-action plan-btn" title="Planificar Turnos">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="m9 16 2 2 4-4"/></svg>
+                    </button>
+                    <button (click)="abrirModalEditar(medico)" class="btn-action edit-btn" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    </button>
+                    <button (click)="eliminarMedico(medico.idMedico!)" class="btn-action delete-btn" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- Doctor Form Modal -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>{{ selectedMedicoId ? 'Editar Médico' : 'Nuevo Médico' }}</h2>
+          <button (click)="cerrarModal()" class="btn-close-modal">&times;</button>
+        </div>
+        <form [formGroup]="medicoForm" (ngSubmit)="guardarMedico()">
+          <div class="modal-body">
+            @if (errorMessage()) {
+              <div class="alert-error">
+                {{ errorMessage() }}
+              </div>
+            }
+
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Nombres *</label>
+                <input type="text" formControlName="nombres" class="form-input" placeholder="Ej: Carlos" />
+                @if (medicoForm.get('nombres')?.touched && medicoForm.get('nombres')?.invalid) {
+                  <span class="field-error">Requerido.</span>
+                }
+              </div>
+              
+              <div class="form-group col">
+                <label class="form-label">Apellidos *</label>
+                <input type="text" formControlName="apellidos" class="form-input" placeholder="Ej: Mendoza Ramos" />
+                @if (medicoForm.get('apellidos')?.touched && medicoForm.get('apellidos')?.invalid) {
+                  <span class="field-error">Requerido.</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">DNI *</label>
+                <input type="text" formControlName="dni" class="form-input" placeholder="Ej: 12345678" maxlength="8" />
+                @if (medicoForm.get('dni')?.touched && medicoForm.get('dni')?.invalid) {
+                  <span class="field-error">Debe tener 8 dígitos.</span>
+                }
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Colegiatura COP *</label>
+                <input type="text" formControlName="cop" class="form-input" placeholder="Ej: 12345" />
+                @if (medicoForm.get('cop')?.touched && medicoForm.get('cop')?.invalid) {
+                  <span class="field-error">Requerido.</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Especialidad *</label>
+                <select formControlName="especialidad" class="form-input">
+                  <option value="" disabled>Seleccione especialidad</option>
+                  @for (esp of especialidades; track esp) {
+                    <option [value]="esp">{{ esp }}</option>
+                  }
+                </select>
+                @if (medicoForm.get('especialidad')?.touched && medicoForm.get('especialidad')?.invalid) {
+                  <span class="field-error">Requerido.</span>
+                }
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Horario Turno Base *</label>
+                <select formControlName="horarioTurno" class="form-input">
+                  <option value="" disabled>Seleccione turno base</option>
+                  @for (t of turnos; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+                @if (medicoForm.get('horarioTurno')?.touched && medicoForm.get('horarioTurno')?.invalid) {
+                  <span class="field-error">Requerido.</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Teléfono</label>
+                <input type="text" formControlName="telefono" class="form-input" placeholder="Ej: 987654321" />
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" formControlName="correo" class="form-input" placeholder="Ej: dr.carlos@example.com" />
+                @if (medicoForm.get('correo')?.touched && medicoForm.get('correo')?.invalid) {
+                  <span class="field-error">Correo inválido.</span>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" (click)="cerrarModal()" class="mrd-btn mrd-btn-outline" [disabled]="submitting()">
+              Cancelar
+            </button>
+            <button type="submit" class="mrd-btn mrd-btn-primary" [disabled]="submitting()">
+              @if (submitting()) {
+                Guardando...
+              } @else {
+                Guardar Médico
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Schedule Turn Planning Modal (El médico planifica sus turnos) -->
+  @if (isPlanningOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal-dialog planning-dialog">
+        <div class="modal-header">
+          <div>
+            <h2>Planificación de Turnos</h2>
+            <p style="font-size: 0.85em; color: var(--text-secondary);">
+              Dr(a). {{ selectedMedico?.nombres }} {{ selectedMedico?.apellidos }} ({{ selectedMedico?.especialidad }})
+            </p>
+          </div>
+          <button (click)="cerrarPlanificacion()" class="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <!-- Select Date -->
+          <div class="form-group">
+            <label class="form-label">Fecha a planificar</label>
+            <input 
+              type="date" 
+              [value]="planningDate()" 
+              (change)="onPlanningDateChange($event)" 
+              class="form-input planning-date-picker"
+            />
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="presets-container">
+            <span class="preset-label">Presets Rápidos:</span>
+            <button type="button" (click)="aplicarPreset('mañana')" class="mrd-btn mrd-btn-outline preset-btn">Solo Mañana</button>
+            <button type="button" (click)="aplicarPreset('tarde')" class="mrd-btn mrd-btn-outline preset-btn">Solo Tarde</button>
+            <button type="button" (click)="aplicarPreset('completa')" class="mrd-btn mrd-btn-outline preset-btn">Todo el Día</button>
+            <button type="button" (click)="aplicarPreset('limpiar')" class="mrd-btn mrd-btn-outline preset-btn btn-clear">Limpiar</button>
+          </div>
+
+          <!-- Slots Grid -->
+          <div class="slots-wrapper">
+            <label class="form-label">Seleccione las horas disponibles para citas (Intervalo de 1 hora)</label>
+            <div class="hours-grid">
+              @for (hour of availableHourSlots; track hour) {
+                <button 
+                  type="button" 
+                  [class.active]="selectedHours.has(hour)"
+                  (click)="toggleHour(hour)"
+                  class="hour-slot-btn"
+                >
+                  <svg *ngIf="selectedHours.has(hour)" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  {{ hour }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" (click)="cerrarPlanificacion()" class="mrd-btn mrd-btn-outline" [disabled]="savingPlanning()">
+            Cancelar
+          </button>
+          <button type="button" (click)="guardarPlanificacion()" class="mrd-btn mrd-btn-primary" [disabled]="savingPlanning()">
+            @if (savingPlanning()) {
+              Guardando...
+            } @else {
+              Guardar Horario
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

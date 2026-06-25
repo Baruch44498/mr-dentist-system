@@ -1,0 +1,98 @@
+<div class="dashboard-wrapper">
+  <div class="welcome-header">
+    <h1>Panel de Control</h1>
+    <p>Bienvenido al sistema de administración odontológica <strong>Clínica Mr. Dentist</strong></p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando información de la clínica...</p>
+    </div>
+  } @else {
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="mrd-card stat-card patient-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="card-info">
+          <h3>Pacientes</h3>
+          <span class="stat-number">{{ totalPacientes() }}</span>
+          <p>Pacientes registrados y activos</p>
+        </div>
+      </div>
+
+      <div class="mrd-card stat-card doctor-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-cog"><circle cx="18" cy="15" r="3"/><circle cx="9" cy="7" r="4"/><path d="M10 15H6a4 4 0 0 0-4 4v2"/><path d="m21.7 16.4-.9-.3"/><path d="m15.2 13.9-.9-.3"/><path d="m16.6 18.7.3-.9"/><path d="m19.1 12.2.3-.9"/><path d="m20 13.7.3.9"/><path d="m16 17.3.3.9"/><path d="m17.6 13.9-.3-.9"/><path d="m18.4 17.3-.3-.9"/></svg>
+        </div>
+        <div class="card-info">
+          <h3>Médicos</h3>
+          <span class="stat-number">{{ totalMedicos() }}</span>
+          <p>Especialistas odontológicos activos</p>
+        </div>
+      </div>
+
+      <div class="mrd-card stat-card appointments-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+        </div>
+        <div class="card-info">
+          <h3>Citas Totales</h3>
+          <span class="stat-number">{{ totalCitas() }}</span>
+          <p>Total de citas agendadas</p>
+        </div>
+      </div>
+
+      <div class="mrd-card stat-card pending-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="card-info">
+          <h3>Citas Pendientes</h3>
+          <span class="stat-number">{{ citasPendientes() }}</span>
+          <p>Citas pendientes de atención</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="quick-actions-panel mrd-card">
+      <h2>Acciones Rápidas</h2>
+      <p class="section-desc">Accesos directos para optimizar la atención de la clínica dental</p>
+      
+      <div class="actions-grid">
+        <a routerLink="/pacientes" class="action-btn-card">
+          <div class="action-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="action-details">
+            <h4>Nuevo Paciente</h4>
+            <p>Registrar datos y contacto de paciente</p>
+          </div>
+        </a>
+
+        <a routerLink="/citas" class="action-btn-card">
+          <div class="action-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="m19 16-4 4 4 4"/><path d="M15 20h6"/></svg>
+          </div>
+          <div class="action-details">
+            <h4>Agendar Cita</h4>
+            <p>Programar atención odontológica</p>
+          </div>
+        </a>
+
+        <a routerLink="/medicos" class="action-btn-card">
+          <div class="action-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div class="action-details">
+            <h4>Planificar Horarios</h4>
+            <p>Gestionar turnos y días de médicos</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  }
+</div>
