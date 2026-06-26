@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EspecialidadService } from '../../services/especialidad.service';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Especialidad } from '../../models/especialidad.model';
+import { EspecialidadService } from '../../services/especialidad.service';
 
 @Component({
   selector: 'app-especialidad-list',
@@ -17,24 +17,26 @@ export class EspecialidadListComponent implements OnInit {
 
   readonly especialidades = signal<Especialidad[]>([]);
   readonly loading = signal<boolean>(true);
-  readonly apiError = signal<boolean>(false);
   readonly searchTerm = signal<string>('');
   readonly isModalOpen = signal<boolean>(false);
   readonly submitting = signal<boolean>(false);
-
-  // Filtrado reactivo dinámico de especialidades
-  readonly filteredEspecialidades = computed(() => {
-    const term = this.searchTerm().toLowerCase().trim();
-    if (!term) return this.especialidades();
-    return this.especialidades().filter(e => 
-      e.nombre.toLowerCase().includes(term) ||
-      (e.descripcion && e.descripcion.toLowerCase().includes(term))
-    );
-  });
+  readonly apiWarning = signal<string>('');
+  readonly errorMessage = signal<string>('');
 
   especialidadForm!: FormGroup;
   selectedEspecialidadId: number | null = null;
-  errorMessage = signal<string>('');
+
+  readonly filteredEspecialidades = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const data = this.especialidades();
+
+    if (!term) return data;
+
+    return data.filter((especialidad) =>
+      especialidad.nombre.toLowerCase().includes(term) ||
+      (especialidad.descripcion ?? '').toLowerCase().includes(term)
+    );
+  });
 
   ngOnInit(): void {
     this.initForm();
@@ -43,22 +45,28 @@ export class EspecialidadListComponent implements OnInit {
 
   initForm(): void {
     this.especialidadForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.maxLength(50)]],
-      descripcion: ['', [Validators.maxLength(250)]]
+      nombre: ['', [Validators.required, Validators.maxLength(80)]],
+      descripcion: ['', [Validators.maxLength(250)]],
+      estado: [true]
     });
   }
 
   cargarEspecialidades(): void {
     this.loading.set(true);
-    this.apiError.set(false);
+    this.apiWarning.set('');
+
     this.especialidadService.listarEspecialidades().subscribe({
       next: (data) => {
         this.especialidades.set(data);
         this.loading.set(false);
+
+        if (this.especialidadService.estaEnModoFallback()) {
+          this.apiWarning.set('El endpoint /api/especialidades no está disponible. Se muestran especialidades temporales locales para que el frontend siga funcionando.');
+        }
       },
       error: (err) => {
-        console.error('Error al cargar especialidades del backend:', err);
-        this.apiError.set(true);
+        console.error('Error al cargar especialidades:', err);
+        this.errorMessage.set('No se pudieron cargar las especialidades odontológicas.');
         this.loading.set(false);
       }
     });
@@ -67,23 +75,33 @@ export class EspecialidadListComponent implements OnInit {
   abrirModalNuevo(): void {
     this.selectedEspecialidadId = null;
     this.errorMessage.set('');
-    this.especialidadForm.reset();
+    this.especialidadForm.reset({
+      nombre: '',
+      descripcion: '',
+      estado: true
+    });
     this.isModalOpen.set(true);
   }
 
   abrirModalEditar(especialidad: Especialidad): void {
-    this.selectedEspecialidadId = especialidad.idEspecialidad ?? especialidad.id ?? null;
+    this.selectedEspecialidadId = this.obtenerId(especialidad) ?? null;
     this.errorMessage.set('');
     this.especialidadForm.patchValue({
       nombre: especialidad.nombre,
-      descripcion: especialidad.descripcion ?? ''
+      descripcion: especialidad.descripcion ?? '',
+      estado: especialidad.estado ?? true
     });
     this.isModalOpen.set(true);
   }
 
   cerrarModal(): void {
     this.isModalOpen.set(false);
-    this.especialidadForm.reset();
+    this.especialidadForm.reset({
+      nombre: '',
+      descripcion: '',
+      estado: true
+    });
+    this.selectedEspecialidadId = null;
   }
 
   guardarEspecialidad(): void {
@@ -94,20 +112,15 @@ export class EspecialidadListComponent implements OnInit {
 
     const formVal = this.especialidadForm.value;
     const especialidadData: Especialidad = {
-      nombre: formVal.nombre,
-      descripcion: formVal.descripcion || undefined
+      nombre: formVal.nombre.trim(),
+      descripcion: formVal.descripcion?.trim() || undefined,
+      estado: formVal.estado ?? true
     };
-
-    // Asignar ID si es edición para resiliencia
-    if (this.selectedEspecialidadId) {
-      especialidadData.idEspecialidad = this.selectedEspecialidadId;
-      especialidadData.id = this.selectedEspecialidadId;
-    }
 
     this.submitting.set(true);
     this.errorMessage.set('');
 
-    const operation = this.selectedEspecialidadId 
+    const operation = this.selectedEspecialidadId
       ? this.especialidadService.actualizarEspecialidad(this.selectedEspecialidadId, especialidadData)
       : this.especialidadService.registrarEspecialidad(especialidadData);
 
@@ -119,31 +132,41 @@ export class EspecialidadListComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al guardar especialidad:', err);
-        this.errorMessage.set('Ocurrió un error al guardar los datos. Verifique si la especialidad ya existe.');
+        this.errorMessage.set('No se pudo guardar la especialidad. Revise los datos e intente nuevamente.');
         this.submitting.set(false);
       }
     });
   }
 
   eliminarEspecialidad(especialidad: Especialidad): void {
-    const id = especialidad.idEspecialidad ?? especialidad.id;
-    if (!id) return;
+    const id = this.obtenerId(especialidad);
 
-    if (confirm(`¿Está seguro de que desea eliminar la especialidad "${especialidad.nombre}"?`)) {
-      this.especialidadService.eliminarEspecialidad(id).subscribe({
-        next: () => {
-          this.cargarEspecialidades();
-        },
-        error: (err) => {
-          console.error('Error al eliminar especialidad:', err);
-          alert('No se pudo eliminar la especialidad. Podría estar vinculada a un médico.');
-        }
-      });
+    if (!id) {
+      alert('No se pudo identificar la especialidad seleccionada.');
+      return;
     }
+
+    if (!confirm(`¿Está seguro de que desea eliminar la especialidad "${especialidad.nombre}"?`)) {
+      return;
+    }
+
+    this.especialidadService.eliminarEspecialidad(id).subscribe({
+      next: () => {
+        this.cargarEspecialidades();
+      },
+      error: (err) => {
+        console.error('Error al eliminar especialidad:', err);
+        alert('No se pudo eliminar la especialidad.');
+      }
+    });
   }
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
+  }
+
+  obtenerId(especialidad: Especialidad): number | undefined {
+    return especialidad.idEspecialidad ?? especialidad.id;
   }
 }
