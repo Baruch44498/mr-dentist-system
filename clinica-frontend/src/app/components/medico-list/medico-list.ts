@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MedicoService } from '../../services/medico.service';
+import { EspecialidadService } from '../../services/especialidad.service';
 import { Medico, TurnoPlanificado } from '../../models/medico.model';
 
 @Component({
@@ -14,6 +15,7 @@ import { Medico, TurnoPlanificado } from '../../models/medico.model';
 export class MedicoListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly medicoService = inject(MedicoService);
+  private readonly especialidadService = inject(EspecialidadService);
 
   readonly medicos = signal<Medico[]>([]);
   readonly loading = signal<boolean>(true);
@@ -33,15 +35,8 @@ export class MedicoListComponent implements OnInit {
     '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
   ];
 
-  // Specialty options
-  readonly especialidades = [
-    'Odontología General',
-    'Ortodoncia',
-    'Endodoncia',
-    'Odontopediatría',
-    'Rehabilitación Oral',
-    'Cirugía Bucal'
-  ];
+  // Specialty options loaded from API with local fallback if /api/especialidades is unavailable.
+  readonly especialidades = signal<string[]>(this.especialidadService.obtenerEspecialidadesBase());
 
   // Shift options
   readonly turnos = [
@@ -68,6 +63,7 @@ export class MedicoListComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.cargarEspecialidades();
     this.cargarMedicos();
     this.initPlanningDate();
   }
@@ -91,6 +87,19 @@ export class MedicoListComponent implements OnInit {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     this.planningDate.set(`${yyyy}-${mm}-${dd}`);
+  }
+
+
+  cargarEspecialidades(): void {
+    this.especialidadService.obtenerNombresEspecialidades().subscribe({
+      next: (especialidades) => {
+        this.especialidades.set(especialidades.length > 0 ? especialidades : this.especialidadService.obtenerEspecialidadesBase());
+      },
+      error: (err) => {
+        console.error('Error al cargar especialidades:', err);
+        this.especialidades.set(this.especialidadService.obtenerEspecialidadesBase());
+      }
+    });
   }
 
   cargarMedicos(): void {
