@@ -22,12 +22,9 @@ public class EspecialidadController
 
     // 2. GUARDAR / CREAR
     @PostMapping
-    public Especialidad registrarEspecialidad(@RequestBody java.util.Map<String, String> body) {
-        Especialidad nueva = new Especialidad();
-        nueva.setNombre(body.get("especialidad")); // Mapea con el campo del JSON del front
-        nueva.setDescripcion(body.get("descripcion"));
-        nueva.setEstado(true);
-        return especialidadRepository.save(nueva);
+    public Especialidad registrarEspecialidad(@RequestBody Especialidad especialidad) {
+        especialidad.setEstado(true);
+        return especialidadRepository.save(especialidad);
     }
 
     // 3. ACTUALIZAR
@@ -37,6 +34,7 @@ public class EspecialidadController
                 .map(esp -> {
                     esp.setNombre(datosActualizados.getNombre());
                     esp.setDescripcion(datosActualizados.getDescripcion());
+                    esp.setEstado(datosActualizados.getEstado());
                     return ResponseEntity.ok(especialidadRepository.save(esp));
                 }).orElse(ResponseEntity.notFound().build());
     }

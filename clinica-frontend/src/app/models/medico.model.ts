@@ -1,10 +1,12 @@
+import { Especialidad } from './especialidad.model';
+
 export interface Medico {
   idMedico?: number;
   nombres: string;
   apellidos: string;
   dni: string;
   cop: string;
-  especialidad: string;
+  especialidad?: Especialidad | Partial<Especialidad>;
   horarioTurno: string;
   telefono?: string;
   correo?: string;

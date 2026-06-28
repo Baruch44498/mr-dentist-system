@@ -20,7 +20,6 @@ export class EspecialidadListComponent implements OnInit {
   readonly searchTerm = signal<string>('');
   readonly isModalOpen = signal<boolean>(false);
   readonly submitting = signal<boolean>(false);
-  readonly apiWarning = signal<string>('');
   readonly errorMessage = signal<string>('');
 
   especialidadForm!: FormGroup;
@@ -53,16 +52,12 @@ export class EspecialidadListComponent implements OnInit {
 
   cargarEspecialidades(): void {
     this.loading.set(true);
-    this.apiWarning.set('');
+    this.errorMessage.set('');
 
     this.especialidadService.listarEspecialidades().subscribe({
       next: (data) => {
         this.especialidades.set(data);
         this.loading.set(false);
-
-        if (this.especialidadService.estaEnModoFallback()) {
-          this.apiWarning.set('El endpoint /api/especialidades no está disponible. Se muestran especialidades temporales locales para que el frontend siga funcionando.');
-        }
       },
       error: (err) => {
         console.error('Error al cargar especialidades:', err);
