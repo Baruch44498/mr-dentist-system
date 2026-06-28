@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { MedicoService } from '../../services/medico.service';
 import { EspecialidadService } from '../../services/especialidad.service';
 import { Medico, TurnoPlanificado } from '../../models/medico.model';
+import { Especialidad } from '../../models/especialidad.model';
 
 @Component({
   selector: 'app-medico-list',
@@ -35,8 +36,8 @@ export class MedicoListComponent implements OnInit {
     '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
   ];
 
-  // Specialty options loaded from API with local fallback if /api/especialidades is unavailable.
-  readonly especialidades = signal<string[]>(this.especialidadService.obtenerEspecialidadesBase());
+  // Specialty options loaded from API.
+  readonly especialidades = signal<Especialidad[]>([]);
 
   // Shift options
   readonly turnos = [
@@ -52,7 +53,7 @@ export class MedicoListComponent implements OnInit {
       m.nombres.toLowerCase().includes(term) ||
       m.apellidos.toLowerCase().includes(term) ||
       m.dni.includes(term) ||
-      m.especialidad.toLowerCase().includes(term) ||
+      (m.especialidad?.nombre || '').toLowerCase().includes(term) ||
       m.cop.toLowerCase().includes(term)
     );
   });
@@ -91,13 +92,13 @@ export class MedicoListComponent implements OnInit {
 
 
   cargarEspecialidades(): void {
-    this.especialidadService.obtenerNombresEspecialidades().subscribe({
+    this.especialidadService.listarEspecialidades().subscribe({
       next: (especialidades) => {
-        this.especialidades.set(especialidades.length > 0 ? especialidades : this.especialidadService.obtenerEspecialidadesBase());
+        this.especialidades.set(especialidades.filter(e => e.estado !== false));
       },
       error: (err) => {
         console.error('Error al cargar especialidades:', err);
-        this.especialidades.set(this.especialidadService.obtenerEspecialidadesBase());
+        this.especialidades.set([]);
       }
     });
   }
@@ -134,7 +135,7 @@ export class MedicoListComponent implements OnInit {
       apellidos: medico.apellidos,
       dni: medico.dni,
       cop: medico.cop,
-      especialidad: medico.especialidad,
+      especialidad: medico.especialidad?.idEspecialidad ?? '',
       horarioTurno: medico.horarioTurno,
       telefono: medico.telefono ?? '',
       correo: medico.correo ?? ''
@@ -159,7 +160,9 @@ export class MedicoListComponent implements OnInit {
       apellidos: formVal.apellidos,
       dni: formVal.dni,
       cop: formVal.cop,
-      especialidad: formVal.especialidad,
+      especialidad: {
+        idEspecialidad: Number(formVal.especialidad)
+      },
       horarioTurno: formVal.horarioTurno,
       telefono: formVal.telefono || undefined,
       correo: formVal.correo || undefined
@@ -180,7 +183,13 @@ export class MedicoListComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al guardar médico:', err);
-        this.errorMessage.set('Ocurrió un error al guardar los datos. Verifique si el COP, DNI o Correo ya están registrados.');
+        if (err.status === 400) {
+          this.errorMessage.set('No se pudo guardar el médico. Verifique que la especialidad seleccionada sea válida y que DNI, COP o correo no estén duplicados.');
+        } else if (err.status === 0) {
+          this.errorMessage.set('No se pudo conectar con el backend.');
+        } else {
+          this.errorMessage.set('Ocurrió un error al guardar los datos. Intente nuevamente.');
+        }
         this.submitting.set(false);
       }
     });

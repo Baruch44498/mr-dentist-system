@@ -58,7 +58,7 @@
                 <td class="date-cell">{{ cita.fechaHora | date:'dd/MM/yyyy - HH:mm' }}</td>
                 <td class="name-cell">{{ cita.paciente.nombres }} {{ cita.paciente.apellidos }}</td>
                 <td>
-                  <span class="badge badge-info">{{ cita.medico.especialidad }}</span>
+                  <span class="badge badge-info">{{ obtenerNombreEspecialidad(cita) }}</span>
                 </td>
                 <td class="medico-cell">Dr(a). {{ cita.medico.nombres }} {{ cita.medico.apellidos }}</td>
                 <td class="motivo-cell">{{ cita.motivo || 'Consulta General' }}</td>
@@ -127,8 +127,11 @@
                 <label class="form-label">Especialidad Requerida *</label>
                 <select formControlName="especialidad" class="form-input">
                   <option value="" disabled>Seleccione especialidad</option>
-                  @for (esp of especialidades; track esp) {
-                    <option [value]="esp">{{ esp }}</option>
+                  @for (esp of especialidades(); track esp.idEspecialidad) {
+                    <option [value]="esp.nombre">{{ esp.nombre }}</option>
+                  }
+                  @if (especialidades().length === 0) {
+                    <option value="" disabled>No hay especialidades registradas</option>
                   }
                 </select>
                 @if (citaForm.get('especialidad')?.touched && citaForm.get('especialidad')?.invalid) {

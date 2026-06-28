@@ -10,6 +10,6 @@ public interface MedicoRepository extends JpaRepository<Medico, Long>
     List<Medico> findByEstadoTrue();
 
     // Búsqueda por especialidad para cuando hagamos el CRUD de Citas
-    List<Medico> findByEspecialidadContainingAndEstadoTrue(String especialidad);
+    List<Medico> findByEspecialidadNombreContainingAndEstadoTrue(String especialidad);
 
 }

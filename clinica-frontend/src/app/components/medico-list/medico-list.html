@@ -57,7 +57,7 @@
                 <td class="cop-cell">{{ medico.cop }}</td>
                 <td class="name-cell">Dr(a). {{ medico.nombres }} {{ medico.apellidos }}</td>
                 <td>
-                  <span class="badge badge-info">{{ medico.especialidad }}</span>
+                  <span class="badge badge-info">{{ medico.especialidad?.nombre }}</span>
                 </td>
                 <td class="turno-cell">{{ medico.horarioTurno }}</td>
                 <td>
@@ -144,8 +144,11 @@
                 <label class="form-label">Especialidad *</label>
                 <select formControlName="especialidad" class="form-input">
                   <option value="" disabled>Seleccione especialidad</option>
-                  @for (esp of especialidades(); track esp) {
-                    <option [value]="esp">{{ esp }}</option>
+                  @for (esp of especialidades(); track esp.idEspecialidad) {
+                    <option [value]="esp.idEspecialidad">{{ esp.nombre }}</option>
+                  }
+                  @if (especialidades().length === 0) {
+                    <option value="" disabled>No hay especialidades registradas</option>
                   }
                 </select>
                 @if (medicoForm.get('especialidad')?.touched && medicoForm.get('especialidad')?.invalid) {
@@ -207,7 +210,7 @@
           <div>
             <h2>Planificación de Turnos</h2>
             <p style="font-size: 0.85em; color: var(--text-secondary);">
-              Dr(a). {{ selectedMedico?.nombres }} {{ selectedMedico?.apellidos }} ({{ selectedMedico?.especialidad }})
+              Dr(a). {{ selectedMedico?.nombres }} {{ selectedMedico?.apellidos }} ({{ selectedMedico?.especialidad?.nombre }})
             </p>
           </div>
           <button (click)="cerrarPlanificacion()" class="btn-close-modal">&times;</button>

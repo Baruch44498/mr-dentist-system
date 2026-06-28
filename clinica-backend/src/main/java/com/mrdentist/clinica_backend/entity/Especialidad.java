@@ -8,7 +8,7 @@ public class Especialidad
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_especialidad")
-    private Long idInmueble; // Mantenemos consistencia con tipos BIGINT de tu DB
+    private Long idEspecialidad; // Mantenemos consistencia con tipos BIGINT de tu DB
 
     @Column(nullable = false, length = 100)
     private String nombre;
@@ -17,24 +17,24 @@ public class Especialidad
     private String descripcion;
 
     @Column(nullable = false)
-    private boolean estado = true; // Para el borrado lógico requerido (RNF11)
+    private Boolean estado = true; // Para el borrado lógico requerido (RNF11)
 
-    public Especialidad(Long idInmueble, String nombre, String descripcion, boolean estado)
+    public Especialidad(Long idEspecialidad, String nombre, String descripcion, Boolean estado)
     {
-        this.idInmueble = idInmueble;
+        this.idEspecialidad = idEspecialidad;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.estado = estado;
     }
     public Especialidad(){}
 
-    public Long getIdInmueble() {
-        return idInmueble;
+    public Long getIdEspecialidad() {
+        return idEspecialidad;
     }
 
 
-    public void setIdInmueble(Long idInmueble) {
-        this.idInmueble = idInmueble;
+    public void setIdEspecialidad(Long idEspecialidad) {
+        this.idEspecialidad = idEspecialidad;
     }
 
     public String getNombre() {
@@ -53,11 +53,11 @@ public class Especialidad
         this.descripcion = descripcion;
     }
 
-    public boolean isEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
-    public void setEstado(boolean estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
     }
 }

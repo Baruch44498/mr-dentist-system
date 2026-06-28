@@ -7,6 +7,8 @@ import { PacienteService } from '../../services/paciente.service';
 import { Paciente } from '../../models/paciente.model';
 import { MedicoService } from '../../services/medico.service';
 import { Medico } from '../../models/medico.model';
+import { EspecialidadService } from '../../services/especialidad.service';
+import { Especialidad } from '../../models/especialidad.model';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -21,6 +23,7 @@ export class CitaListComponent implements OnInit {
   private readonly citaService = inject(CitaService);
   private readonly pacienteService = inject(PacienteService);
   private readonly medicoService = inject(MedicoService);
+  private readonly especialidadService = inject(EspecialidadService);
 
   readonly citas = signal<Cita[]>([]);
   readonly pacientes = signal<Paciente[]>([]);
@@ -35,15 +38,8 @@ export class CitaListComponent implements OnInit {
   readonly submitting = signal<boolean>(false);
   readonly canceling = signal<boolean>(false);
 
-  // Predefined specialties same as MedicoListComponent
-  readonly especialidades = [
-    'Odontología General',
-    'Ortodoncia',
-    'Endodoncia',
-    'Odontopediatría',
-    'Rehabilitación Oral',
-    'Cirugía Bucal'
-  ];
+  // Dynamic specialties loaded from backend
+  readonly especialidades = signal<Especialidad[]>([]);
 
   // Dynamic filter for active appointments
   readonly filteredCitas = computed(() => {
@@ -54,7 +50,7 @@ export class CitaListComponent implements OnInit {
       c.paciente.apellidos.toLowerCase().includes(term) ||
       c.medico.nombres.toLowerCase().includes(term) ||
       c.medico.apellidos.toLowerCase().includes(term) ||
-      c.medico.especialidad.toLowerCase().includes(term) ||
+      (c.medico.especialidad?.nombre || '').toLowerCase().includes(term) ||
       (c.estadoCita && c.estadoCita.toLowerCase().includes(term))
     );
   });
@@ -96,11 +92,13 @@ export class CitaListComponent implements OnInit {
     this.loading.set(true);
     forkJoin({
       citas: this.citaService.listarCitas(),
-      pacientes: this.pacienteService.listarPacientes()
+      pacientes: this.pacienteService.listarPacientes(),
+      especialidades: this.especialidadService.listarEspecialidades()
     }).subscribe({
       next: (res) => {
         this.citas.set(res.citas);
         this.pacientes.set(res.pacientes);
+        this.especialidades.set(res.especialidades.filter(e => e.estado !== false));
         this.loading.set(false);
       },
       error: (err) => {
@@ -263,5 +261,23 @@ export class CitaListComponent implements OnInit {
   onFilterChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.filterTerm.set(input.value);
+  }
+
+  obtenerNombreEspecialidad(cita: any): string {
+    if (!cita) return 'Sin especialidad';
+
+    const espMedico = cita.medico?.especialidad;
+    if (espMedico) {
+      if (typeof espMedico === 'string') return espMedico;
+      if (espMedico.nombre) return espMedico.nombre;
+    }
+
+    const espCita = cita.especialidad;
+    if (espCita) {
+      if (typeof espCita === 'string') return espCita;
+      if (espCita.nombre) return espCita.nombre;
+    }
+
+    return 'Sin especialidad';
   }
 }

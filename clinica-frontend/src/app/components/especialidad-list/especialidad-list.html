@@ -10,14 +10,14 @@
     </button>
   </div>
 
-  @if (apiWarning()) {
-    <div class="mrd-card warning-card">
-      <div class="warning-icon">⚠️</div>
-      <div>
-        <strong>Modo temporal local activo</strong>
-        <p>{{ apiWarning() }}</p>
+  @if (errorMessage() && !isModalOpen()) {
+    <div class="mrd-card error-card" style="display: flex; gap: 15px; align-items: center; border-left: 4px solid var(--accent-red); background: rgba(239, 68, 68, 0.05); padding: 16px;">
+      <div class="error-icon" style="font-size: 24px;">❌</div>
+      <div style="flex-grow: 1;">
+        <strong style="color: var(--accent-red); font-size: 1.1em; display: block; margin-bottom: 4px;">Error de Conexión</strong>
+        <p style="margin: 0; color: var(--text-secondary); font-size: 0.9em;">{{ errorMessage() }}</p>
       </div>
-      <button type="button" (click)="cargarEspecialidades()" class="mrd-btn mrd-btn-outline">Reintentar conexión</button>
+      <button type="button" (click)="cargarEspecialidades()" class="mrd-btn mrd-btn-outline" style="border-color: var(--accent-red); color: var(--accent-red);">Reintentar conexión</button>
     </div>
   }
 
@@ -39,12 +39,19 @@
       <div class="spinner"></div>
       <p>Cargando especialidades odontológicas...</p>
     </div>
+  } @else if (errorMessage() && !isModalOpen()) {
+    <!-- Se oculta el contenido principal si hay error de carga inicial -->
   } @else {
     @if (filteredEspecialidades().length === 0) {
       <div class="empty-state mrd-card">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
-        <h3>No se encontraron especialidades</h3>
-        <p>Registre una nueva especialidad odontológica o pruebe con otro término de búsqueda.</p>
+        @if (especialidades().length === 0) {
+          <h3>No hay especialidades registradas</h3>
+          <p>Registre una nueva especialidad odontológica para comenzar.</p>
+        } @else {
+          <h3>No se encontraron especialidades</h3>
+          <p>Pruebe con otro término de búsqueda.</p>
+        }
       </div>
     } @else {
       <div class="mrd-table-container">

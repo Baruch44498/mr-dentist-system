@@ -6,6 +6,8 @@ import com.mrdentist.clinica_backend.entity.Cita;
 import com.mrdentist.clinica_backend.repository.MedicoRepository;
 import com.mrdentist.clinica_backend.repository.TurnoPlanificadoRepository;
 import com.mrdentist.clinica_backend.repository.CitaRepository;
+import com.mrdentist.clinica_backend.repository.EspecialidadRepository;
+import com.mrdentist.clinica_backend.entity.Especialidad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,15 +31,25 @@ public class MedicoService
     @Autowired
     private CitaRepository citaRepository;
 
+    @Autowired
+    private EspecialidadRepository especialidadRepository;
+
     public List<Medico> listarActivos() {
         return medicoRepository.findByEstadoTrue();
     }
 
     public List<Medico> listarPorEspecialidad(String especialidad) {
-        return medicoRepository.findByEspecialidadContainingAndEstadoTrue(especialidad);
+        return medicoRepository.findByEspecialidadNombreContainingAndEstadoTrue(especialidad);
     }
 
     public Medico guardar(Medico medico) {
+        if (medico.getEspecialidad() != null && medico.getEspecialidad().getIdEspecialidad() != null) {
+            Especialidad esp = especialidadRepository.findById(medico.getEspecialidad().getIdEspecialidad()).orElse(null);
+            if (esp == null) {
+                return null;
+            }
+            medico.setEspecialidad(esp);
+        }
         return medicoRepository.save(medico);
     }
 
@@ -47,7 +59,13 @@ public class MedicoService
             medico.setApellidos(medicoActualizado.getApellidos());
             medico.setDni(medicoActualizado.getDni());
             medico.setCop(medicoActualizado.getCop());
-            medico.setEspecialidad(medicoActualizado.getEspecialidad());
+            if (medicoActualizado.getEspecialidad() != null && medicoActualizado.getEspecialidad().getIdEspecialidad() != null) {
+                Especialidad esp = especialidadRepository.findById(medicoActualizado.getEspecialidad().getIdEspecialidad()).orElse(null);
+                if (esp == null) {
+                    return null;
+                }
+                medico.setEspecialidad(esp);
+            }
             medico.setHorarioTurno(medicoActualizado.getHorarioTurno());
             medico.setTelefono(medicoActualizado.getTelefono());
             medico.setCorreo(medicoActualizado.getCorreo());
