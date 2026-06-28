@@ -2,6 +2,7 @@ package com.mrdentist.clinica_backend.entity;
 import jakarta.persistence.*;
 @Entity
 @Table(name = "medicos")
+
 public class Medico
 {
     @Id
@@ -21,8 +22,9 @@ public class Medico
     @Column(nullable = false, unique = true, length = 15)
     private String cop;
 
-    @Column(nullable = false, length = 100)
-    private String especialidad; // Ej: Ortodoncia, Odontología General, Endodoncia
+    @ManyToOne
+    @JoinColumn(name = "id_especialidad", nullable = false)
+    private Especialidad especialidad;
 
     @Column(nullable = false, length = 50)
     private String horarioTurno; // Ej: "Lunes a Viernes - Mañana", "Martes y Jueves - Tarde"
@@ -44,7 +46,7 @@ public class Medico
         }
     }
 
-    public Medico(Long idMedico, String nombres, String apellidos, String dni, String cop, String especialidad, String horarioTurno, String telefono, String correo, Boolean estado) {
+    public Medico(Long idMedico, String nombres, String apellidos, String dni, String cop, Especialidad especialidad, String horarioTurno, String telefono, String correo, Boolean estado) {
         this.idMedico = idMedico;
         this.nombres = nombres;
         this.apellidos = apellidos;
@@ -100,11 +102,11 @@ public class Medico
         this.cop = cop;
     }
 
-    public String getEspecialidad() {
+    public Especialidad getEspecialidad() {
         return especialidad;
     }
 
-    public void setEspecialidad(String especialidad) {
+    public void setEspecialidad(Especialidad especialidad) {
         this.especialidad = especialidad;
     }
 

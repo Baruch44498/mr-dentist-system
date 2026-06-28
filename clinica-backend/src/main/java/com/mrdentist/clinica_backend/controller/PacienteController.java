@@ -8,7 +8,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pacientes")
-@CrossOrigin(origins = "http://localhost:4200") // Permite que Angular (Frontend) acceda a estos datos
 public class PacienteController
 {
     @Autowired

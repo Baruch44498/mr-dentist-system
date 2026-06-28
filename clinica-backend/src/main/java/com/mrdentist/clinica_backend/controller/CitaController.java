@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
 @RequestMapping("/api/citas")
-@CrossOrigin(origins = "http://localhost:4200")
+
 public class CitaController
 {
     @Autowired
