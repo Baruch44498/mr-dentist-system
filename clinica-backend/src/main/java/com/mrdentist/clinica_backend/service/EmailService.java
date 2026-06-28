@@ -24,7 +24,7 @@ public class EmailService {
 
         String nombrePaciente = cita.getPaciente().getNombres() + " " + cita.getPaciente().getApellidos();
         String nombreMedico = cita.getMedico().getNombres() + " " + cita.getMedico().getApellidos();
-        String especialidad = cita.getMedico().getEspecialidad();
+        String especialidad = cita.getMedico().getEspecialidad().getNombre();
         String fechaHoraStr = cita.getFechaHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
 
         String asunto = "Cita Cancelada - Clínica Mr. Dentist";
