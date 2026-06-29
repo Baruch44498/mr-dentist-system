@@ -1,21 +1,25 @@
 package com.mrdentist.clinica_backend.entity;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+
 @Entity
-@Table(name = "detalles_receta")
-public class DetalleReceta
-{
+@Table(name = "detalle_receta")
+public class DetalleReceta {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idDetalle;
+    private Long idDetalleReceta;
 
     @ManyToOne
     @JoinColumn(name = "id_receta", nullable = false)
-    @JsonIgnore // Evita bucles infinitos al convertir a JSON
+    @JsonBackReference
     private Receta receta;
 
     @Column(nullable = false)
     private String medicamento;
+
+    private String presentacion;
 
     @Column(nullable = false)
     private String dosis;
@@ -26,26 +30,42 @@ public class DetalleReceta
     @Column(nullable = false)
     private String duracion;
 
-    @Column(columnDefinition = "TEXT")
-    private String indicaciones;
-    public DetalleReceta(){}
+    private String viaAdministracion;
 
-    public DetalleReceta(Long idDetalle, Receta receta, String medicamento, String dosis, String frecuencia, String duracion, String indicaciones) {
-        this.idDetalle = idDetalle;
+    private String indicaciones;
+
+    @Column(nullable = false)
+    private Boolean estado = true;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.estado == null) {
+            this.estado = true;
+        }
+    }
+
+    public DetalleReceta() {}
+
+    public DetalleReceta(Long idDetalleReceta, Receta receta, String medicamento, String presentacion, String dosis, String frecuencia, String duracion, String viaAdministracion, String indicaciones, Boolean estado) {
+        this.idDetalleReceta = idDetalleReceta;
         this.receta = receta;
         this.medicamento = medicamento;
+        this.presentacion = presentacion;
         this.dosis = dosis;
         this.frecuencia = frecuencia;
         this.duracion = duracion;
+        this.viaAdministracion = viaAdministracion;
         this.indicaciones = indicaciones;
+        this.estado = estado;
     }
 
-    public Long getIdDetalle() {
-        return idDetalle;
+    // Getters and Setters
+    public Long getIdDetalleReceta() {
+        return idDetalleReceta;
     }
 
-    public void setIdDetalle(Long idDetalle) {
-        this.idDetalle = idDetalle;
+    public void setIdDetalleReceta(Long idDetalleReceta) {
+        this.idDetalleReceta = idDetalleReceta;
     }
 
     public Receta getReceta() {
@@ -62,6 +82,14 @@ public class DetalleReceta
 
     public void setMedicamento(String medicamento) {
         this.medicamento = medicamento;
+    }
+
+    public String getPresentacion() {
+        return presentacion;
+    }
+
+    public void setPresentacion(String presentacion) {
+        this.presentacion = presentacion;
     }
 
     public String getDosis() {
@@ -88,11 +116,27 @@ public class DetalleReceta
         this.duracion = duracion;
     }
 
+    public String getViaAdministracion() {
+        return viaAdministracion;
+    }
+
+    public void setViaAdministracion(String viaAdministracion) {
+        this.viaAdministracion = viaAdministracion;
+    }
+
     public String getIndicaciones() {
         return indicaciones;
     }
 
     public void setIndicaciones(String indicaciones) {
         this.indicaciones = indicaciones;
+    }
+
+    public Boolean getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Boolean estado) {
+        this.estado = estado;
     }
 }

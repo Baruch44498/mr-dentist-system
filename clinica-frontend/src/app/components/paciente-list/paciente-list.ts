@@ -1,16 +1,18 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { PacienteService } from '../../services/paciente.service';
 import { Paciente } from '../../models/paciente.model';
 
 @Component({
   selector: 'app-paciente-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './paciente-list.html',
   styleUrl: './paciente-list.css'
 })
+
 export class PacienteListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly pacienteService = inject(PacienteService);

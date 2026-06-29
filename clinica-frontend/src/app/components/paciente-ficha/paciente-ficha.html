@@ -1,0 +1,601 @@
+<div class="page-wrapper">
+  <!-- Back button & Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <a routerLink="/pacientes" class="mrd-btn mrd-btn-outline back-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Volver a Pacientes
+      </a>
+      <div class="header-title-area">
+        <h1>Ficha Clínica del Paciente</h1>
+        <p>Historial médico integral y registro odontológico</p>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando ficha del paciente...</p>
+    </div>
+  } @else {
+    @if (paciente()) {
+      <!-- Patient Profile Details Card -->
+      <div class="mrd-card profile-card">
+        <div class="profile-avatar">
+          <span>{{ paciente()?.nombres?.charAt(0) }}{{ paciente()?.apellidos?.charAt(0) }}</span>
+        </div>
+        <div class="profile-info-grid">
+          <div class="profile-info-item name-item">
+            <span class="info-label">Nombre Completo</span>
+            <span class="info-value">{{ paciente()?.nombres }} {{ paciente()?.apellidos }}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="info-label">DNI / Cédula</span>
+            <span class="info-value value-highlight">{{ paciente()?.dni }}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="info-label">Teléfono</span>
+            <span class="info-value">{{ paciente()?.telefono || '-' }}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="info-label">Correo Electrónico</span>
+            <span class="info-value">{{ paciente()?.correo || '-' }}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="info-label">Fecha de Registro</span>
+            <span class="info-value">{{ (paciente()?.fechaRegistro | date:'dd/MM/yyyy') || '-' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ficha Tabs -->
+      <div class="ficha-tabs">
+        <button 
+          (click)="setTab('historia')" 
+          [class.active]="activeTab() === 'historia'" 
+          class="tab-btn">
+          <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+          Historia Clínica
+        </button>
+        <button 
+          (click)="setTab('citas')" 
+          [class.active]="activeTab() === 'citas'" 
+          class="tab-btn">
+          <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+          Citas y Consultas
+        </button>
+        <button 
+          (click)="setTab('seguimiento')" 
+          [class.active]="activeTab() === 'seguimiento'" 
+          class="tab-btn">
+          <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Notas de Evolución
+        </button>
+        <button 
+          (click)="setTab('recetas')" 
+          [class.active]="activeTab() === 'recetas'" 
+          class="tab-btn">
+          <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 0 0-7-7l-10 10a4.95 4.95 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+          Recetas Médicas
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="tab-content">
+        
+        <!-- PESTAÑA: HISTORIA CLINICA -->
+        @if (activeTab() === 'historia') {
+          <div class="mrd-card tab-pane">
+            <div class="pane-header">
+              <h2>Antecedentes Clínicos Odontológicos</h2>
+              @if (!isHistoriaEditMode()) {
+                <button (click)="activarEdicionHistoria()" class="mrd-btn mrd-btn-outline btn-edit-historia">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  Editar Historia Clínica
+                </button>
+              }
+            </div>
+
+            <form [formGroup]="historiaForm" (ngSubmit)="guardarHistoria()">
+              <div class="history-grid">
+                
+                <div class="history-section">
+                  <div class="section-title">
+                    <span class="icon-indicator red"></span>
+                    <h3>Antecedentes Médicos Generales</h3>
+                  </div>
+                  <p class="section-desc">Alergias, enfermedades crónicas, cirugías, medicamentos y otros datos médicos sistémicos relevantes.</p>
+                  @if (isHistoriaEditMode()) {
+                    <textarea formControlName="antecedentesMedicos" class="form-input text-area-large" placeholder="Escriba alergias, diabetes, hipertensión, medicamentos actuales, etc."></textarea>
+                  } @else {
+                    <div class="display-text-box">
+                      {{ historiaClinica()?.antecedentesMedicos || 'Sin antecedentes médicos registrados.' }}
+                    </div>
+                  }
+                </div>
+
+                <div class="history-section">
+                  <div class="section-title">
+                    <span class="icon-indicator blue"></span>
+                    <h3>Antecedentes Odontológicos</h3>
+                  </div>
+                  <p class="section-desc">Tratamientos odontológicos previos, cirugías bucales o malas experiencias de tratamiento.</p>
+                  @if (isHistoriaEditMode()) {
+                    <textarea formControlName="antecedentesOdontologicos" class="form-input text-area-large" placeholder="Escriba ortodoncia previa, extracciones, implantes u otros tratamientos recibidos."></textarea>
+                  } @else {
+                    <div class="display-text-box">
+                      {{ historiaClinica()?.antecedentesOdontologicos || 'Sin antecedentes odontológicos registrados.' }}
+                    </div>
+                  }
+                </div>
+
+                <div class="history-section full-width">
+                  <div class="section-title">
+                    <span class="icon-indicator green"></span>
+                    <h3>Observaciones Generales</h3>
+                  </div>
+                  <p class="section-desc">Notas generales sobre hábitos del paciente (higiene dental, fumador, etc.) y conducta clínica.</p>
+                  @if (isHistoriaEditMode()) {
+                    <textarea formControlName="observacionesGenerales" class="form-input text-area-large" placeholder="Detalles de hábitos de higiene, bruxismo, etc."></textarea>
+                  } @else {
+                    <div class="display-text-box">
+                      {{ historiaClinica()?.observacionesGenerales || 'Sin observaciones adicionales.' }}
+                    </div>
+                  }
+                </div>
+
+              </div>
+
+              @if (isHistoriaEditMode()) {
+                <div class="form-actions">
+                  <button type="button" (click)="cancelarEdicionHistoria()" class="mrd-btn mrd-btn-outline" [disabled]="savingHistoria()">
+                    Cancelar
+                  </button>
+                  <button type="submit" class="mrd-btn mrd-btn-primary" [disabled]="savingHistoria()">
+                    {{ savingHistoria() ? 'Guardando...' : 'Guardar Cambios' }}
+                  </button>
+                </div>
+              }
+            </form>
+
+            @if (historiaClinica()?.fechaActualizacion) {
+              <div class="historia-footer">
+                <span>Última actualización: {{ formatDate(historiaClinica()?.fechaActualizacion) }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PESTAÑA: HISTORIAL DE CITAS -->
+        @if (activeTab() === 'citas') {
+          <div class="tab-pane">
+            <div class="pane-header">
+              <h2>Historial de Citas del Paciente</h2>
+            </div>
+
+            @if (citas().length === 0) {
+              <div class="empty-state mrd-card">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="m14 14-4 4-2-2"/></svg>
+                <h3>No hay citas programadas</h3>
+                <p>Este paciente no tiene citas registradas en el sistema todavía.</p>
+              </div>
+            } @else {
+              <div class="mrd-table-container">
+                <table class="mrd-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha y Hora</th>
+                      <th>Médico Tratante</th>
+                      <th>Motivo de Consulta</th>
+                      <th style="text-align: center;">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (cita of citas(); track cita.idCita) {
+                      <tr>
+                        <td class="date-cell">{{ formatDate(cita.fechaHora) }}</td>
+                        <td>{{ cita.medico.nombres }} {{ cita.medico.apellidos }}</td>
+                        <td>{{ cita.motivo || 'Consulta General' }}</td>
+                        <td style="text-align: center;">
+                          <span class="badge" [class.badge-success]="cita.estadoCita === 'REALIZADA'" [class.badge-warning]="cita.estadoCita === 'PENDIENTE'" [class.badge-danger]="cita.estadoCita === 'CANCELADA'">
+                            {{ cita.estadoCita }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PESTAÑA: SEGUIMIENTO / EVOLUCION -->
+        @if (activeTab() === 'seguimiento') {
+          <div class="tab-pane">
+            <div class="pane-header">
+              <h2>Notas de Evolución y Seguimiento Clínico</h2>
+              <button (click)="abrirModalSeguimiento()" class="mrd-btn mrd-btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Registrar Nota de Evolución
+              </button>
+            </div>
+
+            @if (seguimientos().length === 0) {
+              <div class="empty-state mrd-card">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <h3>Sin notas de evolución</h3>
+                <p>No se han registrado seguimientos clínicos todavía. Registre un nuevo seguimiento para iniciar el historial.</p>
+              </div>
+            } @else {
+              <!-- Clinical Timeline -->
+              <div class="timeline-container">
+                @for (seg of seguimientos(); track seg.idSeguimiento) {
+                  <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card mrd-card">
+                      <div class="timeline-header">
+                        <div class="timeline-meta">
+                          <span class="timeline-date">{{ formatDate(seg.fechaSeguimiento) }}</span>
+                          @if (seg.medico) {
+                            <span class="timeline-doctor">
+                              👨‍⚕️ Dr(a). {{ seg.medico.nombres }} {{ seg.medico.apellidos }}
+                            </span>
+                          }
+                          @if (seg.cita) {
+                            <span class="timeline-appointment-link">
+                              📅 Cita: {{ formatDate(seg.cita.fechaHora) }}
+                            </span>
+                          }
+                        </div>
+                        <button (click)="eliminarSeguimiento(seg.idSeguimiento!)" class="btn-delete-timeline" title="Eliminar nota">
+                          &times;
+                        </button>
+                      </div>
+                      <div class="timeline-body">
+                        <p>{{ seg.descripcion }}</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PESTAÑA: RECETAS -->
+        @if (activeTab() === 'recetas') {
+          <div class="tab-pane">
+            <div class="pane-header">
+              <h2>Recetario Clínico</h2>
+              <button (click)="abrirModalReceta()" class="mrd-btn mrd-btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Emitir Receta
+              </button>
+            </div>
+
+            @if (recetas().length === 0) {
+              <div class="empty-state mrd-card">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 0 0-7-7l-10 10a4.95 4.95 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                <h3>No hay recetas emitidas</h3>
+                <p>Este paciente no registra prescripciones médicas en su historial.</p>
+              </div>
+            } @else {
+              <!-- Prescriptions Grid -->
+              <div class="prescriptions-grid">
+                @for (rec of recetas(); track rec.idReceta) {
+                  <div class="prescription-card mrd-card">
+                    <div class="rx-badge">Rx</div>
+                    <div class="rx-header">
+                      <span class="rx-date">Fecha: {{ rec.fechaEmision | date:'dd/MM/yyyy' }}</span>
+                      <button (click)="eliminarReceta(rec.idReceta!)" class="btn-delete-rx" title="Eliminar receta">
+                        &times;
+                      </button>
+                    </div>
+                    <div class="rx-body">
+                      <h4>Medicamentos e Indicaciones:</h4>
+                      @if (rec.detalles && rec.detalles.length > 0) {
+                        <div class="added-meds-list" style="max-height: none; overflow: visible; margin-bottom: 1rem; gap: 0.5rem;">
+                          @for (det of rec.detalles; track det.idDetalleReceta) {
+                            <div class="added-med-item" style="padding: 0.5rem 0.75rem; background: var(--primary-light); border-left: 3px solid var(--primary-color); border-radius: var(--radius-sm); border-top: 0; border-right: 0; border-bottom: 0;">
+                              <div class="med-item-details">
+                                <div class="med-name-line">
+                                  <strong>{{ det.medicamento }}</strong>
+                                  @if (det.presentacion) {
+                                    <span class="med-pres">({{ det.presentacion }})</span>
+                                  }
+                                </div>
+                                <div class="med-instructions-line">
+                                  <span>💊 {{ det.dosis }} - {{ det.frecuencia }} por {{ det.duracion }}</span>
+                                  @if (det.viaAdministracion) {
+                                    <span class="med-via">| Vía: {{ det.viaAdministracion }}</span>
+                                  }
+                                </div>
+                                @if (det.indicaciones) {
+                                  <div class="med-notes">
+                                    <em>Nota: {{ det.indicaciones }}</em>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <p class="rx-meds">{{ rec.medicamentos }}</p>
+                      }
+                    </div>
+                    @if (rec.cita) {
+                      <div class="rx-footer">
+                        <span>Asociado a cita del {{ formatDate(rec.cita.fechaHora) }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    } @else {
+      <div class="empty-state mrd-card">
+        <h3>Paciente no encontrado</h3>
+        <p>No se pudo cargar la información del paciente solicitado.</p>
+      </div>
+    }
+  }
+
+  <!-- MODAL: REGISTRAR EVOLUCION / SEGUIMIENTO -->
+  @if (isSeguimientoModalOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>Registrar Nota de Evolución</h2>
+          <button (click)="cerrarModalSeguimiento()" class="btn-close-modal">&times;</button>
+        </div>
+        <form [formGroup]="seguimientoForm" (ngSubmit)="guardarSeguimiento()">
+          <div class="modal-body">
+            @if (errorMessage()) {
+              <div class="alert-error">
+                {{ errorMessage() }}
+              </div>
+            }
+
+            <div class="form-group">
+              <label class="form-label">Seleccionar Cita Médica *</label>
+              <select formControlName="idCita" class="form-input">
+                <option value="">-- Seleccionar Cita --</option>
+                @for (cita of citasDisponiblesParaSeguimiento(); track cita.idCita) {
+                  <option [value]="cita.idCita">
+                    {{ formatDate(cita.fechaHora) }} - {{ cita.medico.apellidos }} ({{ cita.motivo || 'Control' }})
+                  </option>
+                }
+              </select>
+              @if (seguimientoForm.get('idCita')?.touched && seguimientoForm.get('idCita')?.invalid) {
+                <span class="field-error">Debe seleccionar una cita válida.</span>
+              }
+              @if (citasDisponiblesParaSeguimiento().length === 0) {
+                <small class="form-text text-muted text-danger" style="display: block; margin-top: 0.25rem; color: var(--danger);">
+                  No hay citas disponibles para registrar evolución clínica.
+                </small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Odontólogo / Médico Tratante</label>
+              @if (getSelectedCitaMedicoName()) {
+                <div class="form-input" style="background: var(--primary-light); border-color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--text-primary);">
+                  Dr(a). {{ getSelectedCitaMedicoName() }}
+                </div>
+                <small class="form-text text-muted" style="display: block; margin-top: 0.25rem;">
+                  Médico asignado automáticamente por la cita seleccionada.
+                </small>
+              } @else {
+                <div class="form-input" style="background: var(--card-bg); border-color: var(--border-color); color: var(--text-muted); font-style: italic; display: flex; align-items: center; height: 38px;">
+                  -- Seleccione una cita primero --
+                </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Descripción del Procedimiento / Evolución *</label>
+              <textarea 
+                formControlName="descripcion" 
+                class="form-input text-area-large" 
+                placeholder="Describa el trabajo realizado, curaciones, limpiezas, estado general de la dentadura, indicaciones..."
+                rows="6"></textarea>
+              @if (seguimientoForm.get('descripcion')?.touched && seguimientoForm.get('descripcion')?.invalid) {
+                <span class="field-error">La descripción es obligatoria.</span>
+              }
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" (click)="cerrarModalSeguimiento()" class="mrd-btn mrd-btn-outline" [disabled]="submittingSeguimiento()">
+              Cancelar
+            </button>
+            <button type="submit" class="mrd-btn mrd-btn-primary" [disabled]="submittingSeguimiento() || seguimientoForm.invalid">
+              {{ submittingSeguimiento() ? 'Guardando...' : 'Registrar Evolución' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: EMITIR RECETA -->
+  @if (isRecetaModalOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <h2>Emitir Receta Médica</h2>
+          <button (click)="cerrarModalReceta()" class="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          @if (errorMessage()) {
+            <div class="alert-error">
+              {{ errorMessage() }}
+            </div>
+          }
+
+          <!-- Main Prescription Form Context -->
+          <form [formGroup]="recetaForm">
+            <div class="form-group">
+              <label class="form-label">Seleccionar Cita Médica *</label>
+              <select formControlName="idCita" class="form-input">
+                <option value="">-- Seleccionar Cita --</option>
+                @for (cita of citasDisponiblesParaReceta(); track cita.idCita) {
+                  <option [value]="cita.idCita">
+                    {{ formatDate(cita.fechaHora) }} - {{ cita.medico.apellidos }} ({{ cita.motivo || 'Control' }})
+                  </option>
+                }
+              </select>
+              @if (recetaForm.get('idCita')?.touched && recetaForm.get('idCita')?.invalid) {
+                <span class="field-error">Debe seleccionar una cita válida.</span>
+              }
+              @if (citasDisponiblesParaReceta().length === 0) {
+                <small class="form-text text-muted text-danger" style="display: block; margin-top: 0.25rem; color: var(--danger);">
+                  No hay citas disponibles para emitir una receta.
+                </small>
+              }
+            </div>
+          </form>
+
+          <!-- Structured Medication Builder -->
+          <div class="medication-builder-card">
+            <h3>Agregar Medicamento</h3>
+            <form [formGroup]="medicamentoForm" (ngSubmit)="agregarMedicamento()">
+              <div class="form-row">
+                <div class="form-group col">
+                  <label class="form-label">Medicamento *</label>
+                  <input type="text" formControlName="nombre" list="sug-medicamentos" class="form-input" placeholder="Ej: Amoxicilina" />
+                  <datalist id="sug-medicamentos">
+                    @for (med of medicamentosFrecuentes; track med) {
+                      <option [value]="med"></option>
+                    }
+                  </datalist>
+                  @if (medicamentoForm.get('nombre')?.touched && medicamentoForm.get('nombre')?.invalid) {
+                    <span class="field-error">El nombre es obligatorio.</span>
+                  }
+                </div>
+
+                <div class="form-group col">
+                  <label class="form-label">Presentación / Concentración</label>
+                  <input type="text" formControlName="presentacion" list="sug-presentaciones" class="form-input" placeholder="Ej: Tabletas 500mg" />
+                  <datalist id="sug-presentaciones">
+                    @for (pres of presentacionesFrecuentes; track pres) {
+                      <option [value]="pres"></option>
+                    }
+                  </datalist>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col">
+                  <label class="form-label">Dosis *</label>
+                  <input type="text" formControlName="dosis" class="form-input" placeholder="Ej: 1 tableta, 5ml" />
+                  @if (medicamentoForm.get('dosis')?.touched && medicamentoForm.get('dosis')?.invalid) {
+                    <span class="field-error">La dosis es obligatoria.</span>
+                  }
+                </div>
+
+                <div class="form-group col">
+                  <label class="form-label">Frecuencia *</label>
+                  <input type="text" formControlName="frecuencia" class="form-input" placeholder="Ej: Cada 8 horas" />
+                  @if (medicamentoForm.get('frecuencia')?.touched && medicamentoForm.get('frecuencia')?.invalid) {
+                    <span class="field-error">La frecuencia es obligatoria.</span>
+                  }
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col">
+                  <label class="form-label">Duración *</label>
+                  <div class="duracion-input-group">
+                    <input type="number" formControlName="duracionCantidad" class="form-input" placeholder="Ej: 7" min="1" />
+                    <select formControlName="duracionUnidad" class="form-input select-unidad">
+                      <option value="días">días</option>
+                      <option value="semanas">semanas</option>
+                      <option value="dosis únicas">dosis únicas</option>
+                    </select>
+                  </div>
+                  @if (medicamentoForm.get('duracionCantidad')?.touched && medicamentoForm.get('duracionCantidad')?.invalid) {
+                    <span class="field-error">Duración obligatoria (mínimo 1).</span>
+                  }
+                </div>
+
+                <div class="form-group col">
+                  <label class="form-label">Vía de Administración</label>
+                  <select formControlName="via" class="form-input">
+                    @for (via of viasAdministracion; track via) {
+                      <option [value]="via">{{ via }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Indicaciones Adicionales</label>
+                <input type="text" formControlName="indicaciones" class="form-input" placeholder="Ej: Tomar después de alimentos, evitar lácteos..." />
+              </div>
+
+              <button type="submit" class="mrd-btn mrd-btn-outline btn-add-med">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Añadir a la Receta
+              </button>
+            </form>
+          </div>
+
+          <!-- Added Medications List -->
+          <div class="added-medications-section">
+            <h3>Medicamentos en esta Receta ({{ recetaItems().length }})</h3>
+            @if (recetaItems().length === 0) {
+              <div class="empty-meds-box">
+                <p>No se han añadido medicamentos aún. Complete el formulario superior para agregar.</p>
+              </div>
+            } @else {
+              <div class="added-meds-list">
+                @for (item of recetaItems(); track $index) {
+                  <div class="added-med-item">
+                    <div class="med-item-details">
+                      <div class="med-name-line">
+                        <strong>{{ item.medicamento }}</strong>
+                        @if (item.presentacion) {
+                          <span class="med-pres">({{ item.presentacion }})</span>
+                        }
+                      </div>
+                      <div class="med-instructions-line">
+                        <span>💊 {{ item.dosis }} - {{ item.frecuencia }} por {{ item.duracion }}</span>
+                        @if (item.viaAdministracion) {
+                          <span class="med-via">| Vía: {{ item.viaAdministracion }}</span>
+                        }
+                      </div>
+                      @if (item.indicaciones) {
+                        <div class="med-notes">
+                          <em>Nota: {{ item.indicaciones }}</em>
+                        </div>
+                      }
+                    </div>
+                    <button type="button" (click)="eliminarMedicamentoTemporal($index)" class="btn-remove-med" title="Quitar medicamento">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" (click)="cerrarModalReceta()" class="mrd-btn mrd-btn-outline" [disabled]="submittingReceta()">
+            Cancelar
+          </button>
+          <button type="button" (click)="guardarReceta()" class="mrd-btn mrd-btn-primary" [disabled]="submittingReceta() || recetaItems().length === 0 || recetaForm.invalid">
+            {{ submittingReceta() ? 'Guardando...' : 'Emitir Receta' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

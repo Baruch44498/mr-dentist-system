@@ -40,4 +40,10 @@ public class PacienteService
             pacienteRepository.save(paciente);
         });
     }
+
+    // Obtener por ID
+    public Paciente obtenerPorId(Long id) {
+        return pacienteRepository.findById(id).filter(Paciente::getEstado).orElse(null);
+    }
 }
+

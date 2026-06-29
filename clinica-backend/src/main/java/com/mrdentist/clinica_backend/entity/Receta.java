@@ -1,39 +1,61 @@
 package com.mrdentist.clinica_backend.entity;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "recetas")
 public class Receta {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idReceta;
 
-    // Relación 0..1 (JPA lo maneja como OneToOne, la lógica de negocio decide si se crea o no)
-    @OneToOne
-    @JoinColumn(name = "id_atencion", nullable = false, unique = true)
-    private AtencionClinica atencionClinica;
+    @ManyToOne
+    @JoinColumn(name = "id_paciente", nullable = false)
+    private Paciente paciente;
+
+    @ManyToOne
+    @JoinColumn(name = "id_cita", nullable = true)
+    private Cita cita;
+
+    @Column(columnDefinition = "TEXT", nullable = true)
+    private String medicamentos;
+
+    private LocalDate fechaEmision;
 
     @Column(nullable = false)
-    private LocalDate fechaEmision = LocalDate.now();
+    private Boolean estado = true;
 
-    // LA MAGIA: Si guardas una receta, automáticamente se guardan sus detalles
     @OneToMany(mappedBy = "receta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<DetalleReceta> detalles = new ArrayList<>();
 
-    public Receta(){
-
+    @PrePersist
+    public void prePersist() {
+        if (this.fechaEmision == null) {
+            this.fechaEmision = LocalDate.now();
+        }
+        if (this.estado == null) {
+            this.estado = true;
+        }
     }
 
-    public Receta(Long idReceta, AtencionClinica atencionClinica, LocalDate fechaEmision, List<DetalleReceta> detalles) {
+    public Receta() {}
+
+    public Receta(Long idReceta, Paciente paciente, Cita cita, String medicamentos, LocalDate fechaEmision, Boolean estado) {
         this.idReceta = idReceta;
-        this.atencionClinica = atencionClinica;
+        this.paciente = paciente;
+        this.cita = cita;
+        this.medicamentos = medicamentos;
         this.fechaEmision = fechaEmision;
-        this.detalles = detalles;
+        this.estado = estado;
     }
 
+    // Getters y Setters
     public Long getIdReceta() {
         return idReceta;
     }
@@ -42,12 +64,28 @@ public class Receta {
         this.idReceta = idReceta;
     }
 
-    public AtencionClinica getAtencionClinica() {
-        return atencionClinica;
+    public Paciente getPaciente() {
+        return paciente;
     }
 
-    public void setAtencionClinica(AtencionClinica atencionClinica) {
-        this.atencionClinica = atencionClinica;
+    public void setPaciente(Paciente paciente) {
+        this.paciente = paciente;
+    }
+
+    public Cita getCita() {
+        return cita;
+    }
+
+    public void setCita(Cita cita) {
+        this.cita = cita;
+    }
+
+    public String getMedicamentos() {
+        return medicamentos;
+    }
+
+    public void setMedicamentos(String medicamentos) {
+        this.medicamentos = medicamentos;
     }
 
     public LocalDate getFechaEmision() {
@@ -58,6 +96,14 @@ public class Receta {
         this.fechaEmision = fechaEmision;
     }
 
+    public Boolean getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Boolean estado) {
+        this.estado = estado;
+    }
+
     public List<DetalleReceta> getDetalles() {
         return detalles;
     }
@@ -66,3 +112,4 @@ public class Receta {
         this.detalles = detalles;
     }
 }
+

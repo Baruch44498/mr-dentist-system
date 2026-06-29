@@ -15,6 +15,11 @@ export class PacienteService {
     return this.http.get<Paciente[]>(this.apiUrl);
   }
 
+  obtenerPacientePorId(id: number): Observable<Paciente> {
+    return this.http.get<Paciente>(`${this.apiUrl}/${id}`);
+  }
+
+
   registrarPaciente(paciente: Paciente): Observable<Paciente> {
     return this.http.post<Paciente>(this.apiUrl, paciente);
   }

@@ -17,6 +17,12 @@ public class CitaController
         return citaService.listarActivas();
     }
 
+    @GetMapping("/paciente/{pacienteId}")
+    public List<Cita> listarPorPaciente(@PathVariable Long pacienteId) {
+        return citaService.listarPorPaciente(pacienteId);
+    }
+
+
     @PostMapping
     public Cita registrarCita(@RequestBody Cita cita) {
         return citaService.guardar(cita);

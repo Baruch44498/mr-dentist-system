@@ -28,8 +28,14 @@ public class PacienteController
         return pacienteService.actualizar(id, paciente);
     }
 
+    @GetMapping("/{id}")
+    public Paciente obtenerPaciente(@PathVariable Long id) {
+        return pacienteService.obtenerPorId(id);
+    }
+
     @DeleteMapping("/{id}")
     public void eliminarPaciente(@PathVariable Long id) {
         pacienteService.eliminarLogico(id);
     }
 }
+

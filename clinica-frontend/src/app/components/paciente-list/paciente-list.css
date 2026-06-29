@@ -92,11 +92,18 @@
   color: var(--text-secondary);
 }
 
+.view-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
 .edit-btn:hover {
   background: var(--primary-light);
   color: var(--primary-color);
   border-color: var(--primary-color);
 }
+
 
 .delete-btn:hover {
   background: color-mix(in srgb, var(--danger) 10%, transparent);
