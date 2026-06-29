@@ -8,4 +8,6 @@ public interface CitaRepository extends JpaRepository<Cita, Long>
 {
     List<Cita> findByEstadoTrue();
     List<Cita> findByMedicoIdMedicoAndEstadoTrue(Long idMedico);
+    List<Cita> findByPacienteIdPacienteAndEstadoTrueOrderByFechaHoraDesc(Long idPaciente);
 }
+

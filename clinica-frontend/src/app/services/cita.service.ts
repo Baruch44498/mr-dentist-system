@@ -15,6 +15,11 @@ export class CitaService {
     return this.http.get<Cita[]>(this.apiUrl);
   }
 
+  listarCitasPorPaciente(pacienteId: number): Observable<Cita[]> {
+    return this.http.get<Cita[]>(`${this.apiUrl}/paciente/${pacienteId}`);
+  }
+
+
   registrarCita(cita: Cita): Observable<Cita> {
     return this.http.post<Cita>(this.apiUrl, cita);
   }

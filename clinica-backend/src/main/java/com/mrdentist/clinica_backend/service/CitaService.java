@@ -18,6 +18,11 @@ public class CitaService {
         return citaRepository.findByEstadoTrue();
     }
 
+    public List<Cita> listarPorPaciente(Long pacienteId) {
+        return citaRepository.findByPacienteIdPacienteAndEstadoTrueOrderByFechaHoraDesc(pacienteId);
+    }
+
+
     public Cita guardar(Cita cita) {
         return citaRepository.save(cita);
     }
