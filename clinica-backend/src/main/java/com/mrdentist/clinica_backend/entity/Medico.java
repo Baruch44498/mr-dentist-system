@@ -39,6 +39,10 @@ public class Medico
     @Column(nullable = false)
     private Boolean estado = true;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_usuario", referencedColumnName = "idUsuario")
+    private Usuario usuario;
+
     @PrePersist
     public void prePersist() {
         if (this.estado == null) {
@@ -46,7 +50,7 @@ public class Medico
         }
     }
 
-    public Medico(Long idMedico, String nombres, String apellidos, String dni, String cop, Especialidad especialidad, String horarioTurno, String telefono, String correo, Boolean estado) {
+    public Medico(Long idMedico, String nombres, String apellidos, String dni, String cop, Especialidad especialidad, String horarioTurno, String telefono, String correo, Boolean estado, Usuario usuario) {
         this.idMedico = idMedico;
         this.nombres = nombres;
         this.apellidos = apellidos;
@@ -57,6 +61,7 @@ public class Medico
         this.telefono = telefono;
         this.correo = correo;
         this.estado = estado;
+        this.usuario = usuario;
     }
 
     public Medico() {
@@ -140,5 +145,13 @@ public class Medico
 
     public void setEstado(Boolean estado) {
         this.estado = estado;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 }
