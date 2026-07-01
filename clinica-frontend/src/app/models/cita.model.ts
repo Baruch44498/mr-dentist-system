@@ -7,6 +7,6 @@ export interface Cita {
   medico: Medico;
   fechaHora: string; // ISO date-time '2026-06-25T14:00:00'
   motivo?: string;
-  estadoCita?: string; // PENDIENTE, REALIZADA, CANCELADA
+  estadoCita?: string; // PENDIENTE, ATENDIDA, CANCELADA
   estado?: boolean;
 }

@@ -1,6 +1,7 @@
 package com.mrdentist.clinica_backend.controller;
 import com.mrdentist.clinica_backend.entity.AtencionClinica;
 import com.mrdentist.clinica_backend.service.AtencionClinicaService;
+import com.mrdentist.clinica_backend.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +20,8 @@ public class AtencionClinicaController {
     }
 
     @GetMapping("/cita/{idCita}")
-    public ResponseEntity<AtencionClinica> obtenerAtencionPorIdCita(@PathVariable Long idCita) {
+    public AtencionClinica obtenerAtencionPorIdCita(@PathVariable Long idCita) {
         return atencionClinicaService.obtenerAtencionPorIdCita(idCita)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("Atencion no encontrada para la cita ID: " + idCita));
     }
 }

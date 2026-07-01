@@ -32,4 +32,9 @@ public class PacienteController
     public void eliminarPaciente(@PathVariable Long id) {
         pacienteService.eliminarLogico(id);
     }
+
+    @GetMapping("/buscar")
+    public List<Paciente> buscarPacientes(@RequestParam String texto) {
+        return pacienteService.buscarPacientes(texto);
+    }
 }

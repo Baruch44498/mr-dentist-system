@@ -3,6 +3,9 @@ package com.mrdentist.clinica_backend.service;
 import com.mrdentist.clinica_backend.entity.Medico;
 import com.mrdentist.clinica_backend.entity.TurnoPlanificado;
 import com.mrdentist.clinica_backend.entity.Cita;
+import com.mrdentist.clinica_backend.entity.EstadoCita;
+import com.mrdentist.clinica_backend.exception.BadRequestException;
+import com.mrdentist.clinica_backend.exception.ResourceNotFoundException;
 import com.mrdentist.clinica_backend.repository.MedicoRepository;
 import com.mrdentist.clinica_backend.repository.TurnoPlanificadoRepository;
 import com.mrdentist.clinica_backend.repository.CitaRepository;
@@ -44,10 +47,8 @@ public class MedicoService
 
     public Medico guardar(Medico medico) {
         if (medico.getEspecialidad() != null && medico.getEspecialidad().getIdEspecialidad() != null) {
-            Especialidad esp = especialidadRepository.findById(medico.getEspecialidad().getIdEspecialidad()).orElse(null);
-            if (esp == null) {
-                return null;
-            }
+            Especialidad esp = especialidadRepository.findById(medico.getEspecialidad().getIdEspecialidad())
+                    .orElseThrow(() -> new BadRequestException("La especialidad especificada no existe."));
             medico.setEspecialidad(esp);
         }
         return medicoRepository.save(medico);
@@ -60,25 +61,23 @@ public class MedicoService
             medico.setDni(medicoActualizado.getDni());
             medico.setCop(medicoActualizado.getCop());
             if (medicoActualizado.getEspecialidad() != null && medicoActualizado.getEspecialidad().getIdEspecialidad() != null) {
-                Especialidad esp = especialidadRepository.findById(medicoActualizado.getEspecialidad().getIdEspecialidad()).orElse(null);
-                if (esp == null) {
-                    return null;
-                }
+                Especialidad esp = especialidadRepository.findById(medicoActualizado.getEspecialidad().getIdEspecialidad())
+                        .orElseThrow(() -> new BadRequestException("La especialidad especificada no existe."));
                 medico.setEspecialidad(esp);
             }
             medico.setHorarioTurno(medicoActualizado.getHorarioTurno());
             medico.setTelefono(medicoActualizado.getTelefono());
             medico.setCorreo(medicoActualizado.getCorreo());
             return medicoRepository.save(medico);
-        }).orElse(null);
+        }).orElseThrow(() -> new ResourceNotFoundException("Medico no encontrado con ID: " + id));
     }
 
     // Eliminación Lógica
     public void eliminarLogico(Long id) {
-        medicoRepository.findById(id).ifPresent(medico -> {
-            medico.setEstado(false);
-            medicoRepository.save(medico);
-        });
+        Medico medico = medicoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Medico no encontrado con ID: " + id));
+        medico.setEstado(false);
+        medicoRepository.save(medico);
     }
 
     public List<LocalTime> obtenerDisponibilidad(Long idMedico, LocalDate fecha) {
@@ -120,9 +119,17 @@ public class MedicoService
             }
         }
 
+        // Aplicar regla de exclusión del último slot del turno (duración de cita de 1 hora)
+        String turnoStr = medico.getHorarioTurno() != null ? medico.getHorarioTurno().toLowerCase() : "";
+        if (turnoStr.contains("mañana")) {
+            turnosBase.remove(LocalTime.of(13, 0));
+        } else {
+            turnosBase.remove(LocalTime.of(20, 0));
+        }
+
         List<Cita> citas = citaRepository.findByMedicoIdMedicoAndEstadoTrue(idMedico);
         Set<LocalTime> horasOcupadas = citas.stream()
-                .filter(c -> c.getFechaHora().toLocalDate().isEqual(fecha) && !"CANCELADA".equalsIgnoreCase(c.getEstadoCita()))
+                .filter(c -> c.getFechaHora().toLocalDate().isEqual(fecha) && c.getEstadoCita() != EstadoCita.CANCELADA)
                 .map(c -> c.getFechaHora().toLocalTime())
                 .collect(Collectors.toSet());
 

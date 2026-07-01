@@ -210,7 +210,7 @@
           <div>
             <h2>Planificación de Turnos</h2>
             <p style="font-size: 0.85em; color: var(--text-secondary);">
-              Dr(a). {{ selectedMedico?.nombres }} {{ selectedMedico?.apellidos }} ({{ selectedMedico?.especialidad?.nombre }})
+              Dr(a). {{ selectedMedico()?.nombres }} {{ selectedMedico()?.apellidos }} ({{ selectedMedico()?.especialidad?.nombre }})
             </p>
           </div>
           <button (click)="cerrarPlanificacion()" class="btn-close-modal">&times;</button>
@@ -240,7 +240,7 @@
           <div class="slots-wrapper">
             <label class="form-label">Seleccione las horas disponibles para citas (Intervalo de 1 hora)</label>
             <div class="hours-grid">
-              @for (hour of availableHourSlots; track hour) {
+              @for (hour of planningHours(); track hour) {
                 <button 
                   type="button" 
                   [class.active]="selectedHours.has(hour)"

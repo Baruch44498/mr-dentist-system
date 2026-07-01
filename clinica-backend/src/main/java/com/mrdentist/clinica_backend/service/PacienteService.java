@@ -1,27 +1,26 @@
 package com.mrdentist.clinica_backend.service;
+
 import com.mrdentist.clinica_backend.entity.Paciente;
+import com.mrdentist.clinica_backend.exception.ResourceNotFoundException;
+import com.mrdentist.clinica_backend.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.mrdentist.clinica_backend.repository.PacienteRepository;
 
 import java.util.List;
 
 @Service
-public class PacienteService
-{
+public class PacienteService {
     @Autowired
     private PacienteRepository pacienteRepository;
-    // Listar activos
+
     public List<Paciente> listarActivos() {
         return pacienteRepository.findByEstadoTrue();
     }
 
-    // Registrar
     public Paciente guardar(Paciente paciente) {
         return pacienteRepository.save(paciente);
     }
 
-    // Actualizar
     public Paciente actualizar(Long id, Paciente pacienteActualizado) {
         return pacienteRepository.findById(id).map(paciente -> {
             paciente.setNombres(pacienteActualizado.getNombres());
@@ -30,14 +29,20 @@ public class PacienteService
             paciente.setTelefono(pacienteActualizado.getTelefono());
             paciente.setCorreo(pacienteActualizado.getCorreo());
             return pacienteRepository.save(paciente);
-        }).orElse(null); // Retorna nulo si no encuentra el ID
+        }).orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado con ID: " + id));
     }
 
-    // Eliminación Lógica (Desactivar)
     public void eliminarLogico(Long id) {
-        pacienteRepository.findById(id).ifPresent(paciente -> {
-            paciente.setEstado(false);
-            pacienteRepository.save(paciente);
-        });
+        Paciente paciente = pacienteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado con ID: " + id));
+        paciente.setEstado(false);
+        pacienteRepository.save(paciente);
+    }
+
+    public List<Paciente> buscarPacientes(String texto) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return listarActivos();
+        }
+        return pacienteRepository.buscarPacientesActivos(texto.trim());
     }
 }

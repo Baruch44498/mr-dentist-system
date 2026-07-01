@@ -28,7 +28,7 @@ export class MedicoListComponent implements OnInit {
   readonly isPlanningOpen = signal<boolean>(false);
   readonly planningDate = signal<string>(''); // YYYY-MM-DD
   readonly savingPlanning = signal<boolean>(false);
-  selectedMedico: Medico | null = null;
+  readonly selectedMedico = signal<Medico | null>(null);
   selectedHours = new Set<string>();
 
   readonly availableHourSlots = [
@@ -45,7 +45,6 @@ export class MedicoListComponent implements OnInit {
     'Tarde (14:00 - 20:00)',
     'Jornada Completa (08:00 - 20:00)'
   ];
-
   readonly filteredMedicos = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
     if (!term) return this.medicos();
@@ -56,6 +55,23 @@ export class MedicoListComponent implements OnInit {
       (m.especialidad?.nombre || '').toLowerCase().includes(term) ||
       m.cop.toLowerCase().includes(term)
     );
+  });
+
+  readonly planningHours = computed(() => {
+    const medico = this.selectedMedico();
+    if (!medico) return [];
+    const turno = medico.horarioTurno?.toLowerCase() || '';
+    if (turno.includes('mañana')) {
+      return ['08:00', '09:00', '10:00', '11:00', '12:00'];
+    } else if (turno.includes('tarde')) {
+      return ['14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
+    } else {
+      // Jornada Completa / Completa
+      return [
+        '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
+        '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'
+      ];
+    }
   });
 
   medicoForm!: FormGroup;
@@ -216,7 +232,7 @@ export class MedicoListComponent implements OnInit {
 
   // --- PLANNING SHIFTS WORKFLOW ---
   abrirPlanificacion(medico: Medico): void {
-    this.selectedMedico = medico;
+    this.selectedMedico.set(medico);
     this.selectedHours.clear();
     this.isPlanningOpen.set(true);
     this.cargarPlanificacionDia();
@@ -224,7 +240,7 @@ export class MedicoListComponent implements OnInit {
 
   cerrarPlanificacion(): void {
     this.isPlanningOpen.set(false);
-    this.selectedMedico = null;
+    this.selectedMedico.set(null);
     this.selectedHours.clear();
   }
 
@@ -235,9 +251,10 @@ export class MedicoListComponent implements OnInit {
   }
 
   cargarPlanificacionDia(): void {
-    if (!this.selectedMedico || !this.selectedMedico.idMedico) return;
+    const medico = this.selectedMedico();
+    if (!medico || !medico.idMedico) return;
     
-    const id = this.selectedMedico.idMedico;
+    const id = medico.idMedico;
     const fecha = this.planningDate();
 
     this.medicoService.obtenerPlanificacion(id, fecha).subscribe({
@@ -265,8 +282,9 @@ export class MedicoListComponent implements OnInit {
   }
 
   cargarTurnoPorDefecto(): void {
-    if (!this.selectedMedico) return;
-    const turno = this.selectedMedico.horarioTurno.toLowerCase();
+    const medico = this.selectedMedico();
+    if (!medico) return;
+    const turno = medico.horarioTurno.toLowerCase();
     this.selectedHours.clear();
 
     if (turno.includes('mañana')) {
@@ -275,7 +293,6 @@ export class MedicoListComponent implements OnInit {
       this.selectedHours.add('10:00');
       this.selectedHours.add('11:00');
       this.selectedHours.add('12:00');
-      this.selectedHours.add('13:00');
     } else if (turno.includes('tarde')) {
       this.selectedHours.add('14:00');
       this.selectedHours.add('15:00');
@@ -283,10 +300,9 @@ export class MedicoListComponent implements OnInit {
       this.selectedHours.add('17:00');
       this.selectedHours.add('18:00');
       this.selectedHours.add('19:00');
-      this.selectedHours.add('20:00');
     } else {
       // Jornada Completa
-      this.availableHourSlots.forEach(h => this.selectedHours.add(h));
+      this.planningHours().forEach(h => this.selectedHours.add(h));
     }
   }
 
@@ -306,7 +322,6 @@ export class MedicoListComponent implements OnInit {
       this.selectedHours.add('10:00');
       this.selectedHours.add('11:00');
       this.selectedHours.add('12:00');
-      this.selectedHours.add('13:00');
     } else if (tipo === 'tarde') {
       this.selectedHours.add('14:00');
       this.selectedHours.add('15:00');
@@ -314,17 +329,17 @@ export class MedicoListComponent implements OnInit {
       this.selectedHours.add('17:00');
       this.selectedHours.add('18:00');
       this.selectedHours.add('19:00');
-      this.selectedHours.add('20:00');
     } else if (tipo === 'completa') {
-      this.availableHourSlots.forEach(h => this.selectedHours.add(h));
+      this.planningHours().forEach(h => this.selectedHours.add(h));
     }
   }
 
   guardarPlanificacion(): void {
-    if (!this.selectedMedico || !this.selectedMedico.idMedico) return;
+    const medico = this.selectedMedico();
+    if (!medico || !medico.idMedico) return;
 
     this.savingPlanning.set(true);
-    const id = this.selectedMedico.idMedico;
+    const id = medico.idMedico;
     const fecha = this.planningDate();
 
     // Enviar las horas en formato HH:mm:ss o HH:mm
