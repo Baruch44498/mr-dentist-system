@@ -2,6 +2,7 @@ package com.mrdentist.clinica_backend.controller;
 
 import com.mrdentist.clinica_backend.entity.Receta;
 import com.mrdentist.clinica_backend.service.RecetaService;
+import com.mrdentist.clinica_backend.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +21,8 @@ public class RecetaController {
     }
 
     @GetMapping("/atencion/{idAtencion}")
-    public ResponseEntity<Receta> obtenerRecetaPorIdAtencion(@PathVariable Long idAtencion) {
+    public Receta obtenerRecetaPorIdAtencion(@PathVariable Long idAtencion) {
         return recetaService.obtenerRecetaPorIdAtencion(idAtencion)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("Receta no encontrada para la atencion ID: " + idAtencion));
     }
 }

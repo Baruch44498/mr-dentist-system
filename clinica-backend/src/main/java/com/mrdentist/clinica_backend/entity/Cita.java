@@ -25,8 +25,9 @@ public class Cita
     @Column(length = 255)
     private String motivo;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String estadoCita = "PENDIENTE"; // Puede ser: PENDIENTE, REALIZADA, CANCELADA
+    private EstadoCita estadoCita = EstadoCita.PENDIENTE; // PENDIENTE, ATENDIDA, CANCELADA
 
     // Eliminación lógica
     @Column(nullable = false)
@@ -35,14 +36,14 @@ public class Cita
     @PrePersist
     public void prePersist() {
         if (this.estadoCita == null) {
-            this.estadoCita = "PENDIENTE";
+            this.estadoCita = EstadoCita.PENDIENTE;
         }
         if (this.estado == null) {
             this.estado = true;
         }
     }
 
-    public Cita(Long idCita, Paciente paciente, Medico medico, LocalDateTime fechaHora, String motivo, String estadoCita, Boolean estado) {
+    public Cita(Long idCita, Paciente paciente, Medico medico, LocalDateTime fechaHora, String motivo, EstadoCita estadoCita, Boolean estado) {
         this.idCita = idCita;
         this.paciente = paciente;
         this.medico = medico;
@@ -95,11 +96,11 @@ public class Cita
         this.motivo = motivo;
     }
 
-    public String getEstadoCita() {
+    public EstadoCita getEstadoCita() {
         return estadoCita;
     }
 
-    public void setEstadoCita(String estadoCita) {
+    public void setEstadoCita(EstadoCita estadoCita) {
         this.estadoCita = estadoCita;
     }
 
